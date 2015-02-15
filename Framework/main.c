@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 	size_t memorySize = (argc > 1 ?atoi(argv[1]):2048);
 	const size_t valueCount = memorySize * 1024 * 1024 / sizeof(targetType);
 	targetType* buffer;
-	posix_memalign((void**)(&buffer), 32, valueCount * sizeof(targetType));
+	assert(posix_memalign((void**)(&buffer), 32, valueCount * sizeof(targetType)) == 0);
 	payloadType* payloadBuffer = (SHUFFLE_PAYLOAD)?(payloadType*) malloc(valueCount * sizeof(payloadType)):NULL;
 	unsigned long long sum_before=0, sum_after=0, sum_prod_val_pos_before=0, sum_prod_val_pos_after=0;
 

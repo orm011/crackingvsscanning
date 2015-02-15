@@ -26,7 +26,7 @@ else
 LDFLAGS+=-lpapi
 endif
 
-all: original naive bandwidth vectorizedVanilla vectorizedWithAVXMemcpy vectorizedWithAVXMemcpyAndSIMDCracking cracking_mt_alt_1 cracking_mt_alt_2 cracking_mt_alt_1_vectorized cracking_mt_alt_2_vectorized cracking_mt_alt_1_notmerge cracking_mt_alt_2_notmerge cracking scanning sorting predicated simd
+all: original naive bandwidth vectorizedVanilla vectorizedWithAVXMemcpy vectorizedWithAVXMemcpyAndSIMDCracking cracking_mt_alt_1 cracking_mt_alt_2 cracking_mt_alt_1_vectorized cracking_mt_alt_2_vectorized cracking_mt_alt_1_notmerge cracking_mt_alt_2_notmerge cracking scanning sorting predicated #simd
 
 naive: outputdir
 	gcc $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/naive_$(DISTRIBUTION)_$(PIVOT) -DPIVOT=$(PIVOT) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/naive.c Framework/main.c Implementations/distributions.c Implementations/create_values.c
@@ -56,7 +56,7 @@ cracking_mt_alt_1_vectorized: outputdir
 	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/cracking_mt_$(DISTRIBUTION)_$(PIVOT)_alt_1_$(VECTORSIZE)_int_vectors_threads_$(THREADS) -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DPIVOT=$(PIVOT) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c   Framework/main.c Implementations/cracking_mt_alt_1_vectorized.c Implementations/distributions.c Implementations/create_values.c
 
 cracking_mt_alt_2_vectorized: outputdir
-	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/cracking_mt_$(DISTRIBUTION)_$(PIVOT)_alt_2_vectorized_threads_$(THREADS) -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DPIVOT=$(PIVOT) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c   Framework/main.c Implementations/cracking_mt_alt_2_vectorized.c Implementations/distributions.c Implementations/create_values.c
+	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/cracking_mt_$(DISTRIBUTION)_$(PIVOT)_alt_2_vectorized_threads_$(THREADS) -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DPIVOT=$(PIVOT) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c   Framework/main.c Implementations/cracking_mt_alt_2_vectorized.c Implementations/distributions.c Implementations/create_values.c -lm
 
 cracking_mt_alt_1_notmerge: outputdir
 	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/cracking_mt__$(DISTRIBUTION)_$(PIVOT)alt_1_notmerge_threads_$(THREADS) -DNTHREADS=$(THREADS) -DPIVOT=$(PIVOT) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT_notmerge.c  Implementations/threadpool.c   Framework/main.c Implementations/cracking_mt_alt_1_notmerge.c Implementations/distributions.c Implementations/create_values.c
