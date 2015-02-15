@@ -8,8 +8,8 @@ EVENTS_TO_COUNT={"UNHALTED_CORE_CYCLES"}
 else
 EVENTS_TO_COUNT={"UNHALTED_CORE_CYCLES"}
 endif
-CFLAGS=-O3 -march=native -mtune=native -ftree-vectorize -funroll-loops -fsched-spec-load  -falign-loops -floop-parallelize-all -faggressive-loop-optimizations -g -DEVENTS_TO_COUNT='$(EVENTS_TO_COUNT)' -fopenmp 
-# CFLAGS=-O0 -g -march=native -mtune=native 
+CFLAGS=-O3 -march=native -mtune=native -ftree-vectorize -funroll-loops -fsched-spec-load  -falign-loops -faggressive-loop-optimizations -g -DEVENTS_TO_COUNT='$(EVENTS_TO_COUNT)' -fopenmp  
+# CFLAGS=-O0 -g -march=native -mtune=native -floop-parallelize-all
 LDFLAGS=-lm
 endif
 VECTORSIZE=1024
