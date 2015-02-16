@@ -5,6 +5,8 @@
 
 #endif
 #include <sys/time.h>
+#include <getopt.h>
+
 long timediff(struct timeval before, struct timeval after){
 	return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
 }
@@ -24,19 +26,59 @@ const int SHUFFLE_PAYLOAD = 0;
 #endif
 
 int main(int argc, char* argv[]) {
-	size_t memorySize = (argc > 1 ?atoi(argv[1]):2048);
+
+	int pivotrel = -1;
+	int memorySize = -1;
+	const char * distribution = "randomD";
+
+    static struct option long_options[] =
+      {
+        /* These options set a flag. */
+        {"pivot", required_argument, 0, 'p'},
+        {"sizemb", required_argument, 0, 's'},
+        {0, 0, 0, 0}
+      };
+
+    while (1) {
+    	int * option_index = 0;
+    	int c = getopt_long(argc, argv, "p:s:", long_options, option_index);
+
+    	if (c == -1) break;
+
+    	switch (c) {
+    	case 'p':
+    		pivotrel = atoi(optarg);
+    		break;
+    	case 's':
+    		memorySize = atoi(optarg);
+    		break;
+    	case '?':
+    		printf("arg error ?\n");
+    		exit(1);
+    	default:
+    		printf("arg error default\n");
+    		exit(1);
+    	}
+    }
+    // fprintf(stderr, "command: %s, pivot: %d, sizemb: %d\n", argv[0], pivotrel, memorySize);
+	assert(pivotrel>=0 && pivotrel<=100);
+	assert(memorySize > 0);
+
+
 	const size_t valueCount = memorySize * 1024 * 1024 / sizeof(targetType);
 	targetType* buffer;
+
 	assert(posix_memalign((void**)(&buffer), 32, valueCount * sizeof(targetType)) == 0); // TODO: fiddle with alignment? why?
 	payloadType* payloadBuffer = (SHUFFLE_PAYLOAD)?(payloadType*) malloc(valueCount * sizeof(payloadType)):NULL;
 	unsigned long long sum_before=0, sum_after=0, sum_prod_val_pos_before=0, sum_prod_val_pos_after=0;
 
-	assert(PIVOT>=0 && PIVOT<=100);
-	targetType pivot = (valueCount * PIVOT) / (100.0);
+
+
+	targetType pivot = (valueCount * pivotrel) / (100.0);
 
 	// NOTE: all values generated with randomD will lie between 0 and valueCount,
 	// potentially with some bias due to modulo operator.
-	create_values(DISTRIBUTION, buffer, valueCount, valueCount);
+	create_values(distribution, buffer, valueCount, valueCount);
 		
 	for (size_t i = 0; i < valueCount; i++){
 		if(SHUFFLE_PAYLOAD)
@@ -131,12 +173,15 @@ int main(int argc, char* argv[]) {
 			firstGreater = valueCount;
 		}
 
-		printf("{\"experiment\": \"%-60s\", \"fieldsize\": %lu, ", argv[0], memorySize);
+		printf("{\"experiment\": \"%s\", \"sizemb\": %lu, ", argv[0], memorySize);
 #ifndef NO_PAPI
 		for (int i = 0; i < sizeof(events)/sizeof(events[0]); i++)
 			printf("\"%s\": %lld, ", events[i], values[i]);			
 #endif
-		printf("\"wallclock\": %9ld, \"proper\": %d, \"proper_zeroed_out\": %zu, \"sumcomp\": %d, \"sum_prod_comp\": %d, \"pivot\": %d}\n", timediff(before, after), (lastSmaller<firstGreater), everyFirstValueIsZero,(sum_after==sum_before),(sum_prod_val_pos_before == sum_prod_val_pos_after), PIVOT);
+		printf("\"wallclockmilli\": %ld, \"proper\": %d, \"proper_zeroed_out\": %zu, "
+				"\"sumcomp\": %d, \"sum_prod_comp\": %d, \"pivot\": %d, \"distr\": \"%s\"}\n", timediff(before, after)/1000,
+				(lastSmaller<firstGreater), everyFirstValueIsZero,(sum_after==sum_before),
+				(sum_prod_val_pos_before == sum_prod_val_pos_after), pivotrel, distribution);
 	}
 
 

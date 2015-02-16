@@ -17,15 +17,15 @@ with open(name, 'r') as r:
     for l in r:
         results.append(json.loads(l, object_hook=objhook))
 
-results =  sorted(results, key=lambda r : (r.experiment, r.fieldsize, r.pivot))
+results =  sorted(results, key=lambda r : (r.experiment, r.sizemb, r.pivot))
 
 byalgo = itertools.groupby(results, lambda r : r.experiment)
 for (algo,gralgo) in byalgo:
-    bysize = itertools.groupby(gralgo, lambda r : r.fieldsize)
+    bysize = itertools.groupby(gralgo, lambda r : r.sizemb)
     for (sz, grsz) in bysize:
-        (xax, yax) = zip(*map((lambda r: (r.pivot, r.wallclock)), grsz)) 
-        ymillis = [ y / 10000 for y in yax ]
-        ax = pl.plot(xax, ymillis, '.-', label='%s %s MB' %(algo, sz))
+        (xax, yax) = zip(*map((lambda r: (r.pivot, r.wallclockmilli)), grsz)) 
+        y10millis = [ y / 10 for y in yax ]
+        ax = pl.plot(xax, y10millis, '.-', label='%s %s MB' %(algo, sz))
 
 lgd = pl.legend(loc='center left', bbox_to_anchor=(1, 0.5))        
 pl.xlabel('pivot val within range (rel)')
