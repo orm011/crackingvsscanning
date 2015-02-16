@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
 		for (int i = 0; i < sizeof(events)/sizeof(events[0]); i++)
 			printf("\"%s\": %lld, ", events[i], values[i]);			
 #endif
-		printf("\"WALLCLOCK\": %9ld, \"PROPER\": %d, \"PROPERZEROEDOUT\": %zu, \"SUMCOMP\": %d, \"SUM_PROD_COMP\": %d, \"PIVOT\": %d}\n", timediff(before, after), (lastSmaller<firstGreater), everyFirstValueIsZero,(sum_after==sum_before),(sum_prod_val_pos_before == sum_prod_val_pos_after), PIVOT);
+		printf("\"wallclock\": %9ld, \"proper\": %d, \"proper_zeroed_out\": %zu, \"sumcomp\": %d, \"sum_prod_comp\": %d, \"pivot\": %d}\n", timediff(before, after), (lastSmaller<firstGreater), everyFirstValueIsZero,(sum_after==sum_before),(sum_prod_val_pos_before == sum_prod_val_pos_after), PIVOT);
 	}
 
 
