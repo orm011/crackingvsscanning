@@ -149,7 +149,7 @@ cracking_MT_crackThread ( c_Thread_t *arg )
 {
         size_t pos_r;
         targetType pivot = * (targetType*) arg->pivot;
-	targetType pivot_P = PIVOT;
+        targetType pivot_P = arg->pivotR;
 
         /*call revised cracking routine for this slice */
         standard_cracking_revised_x (arg->b, arg->payload, pivot, arg->first, arg->last, arg->ml, arg->mr, &pos_r, pivot_P);

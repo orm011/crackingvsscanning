@@ -333,10 +333,10 @@ cracking_MT_vectorized_crackThread ( c_Thread_t *arg )
 {
         size_t pos_r;
         targetType pivot = * (targetType*) arg->pivot;
-        targetType pivot_P = PIVOT;
+        targetType pivot_P = arg->pivotR;
 
         /*call revised cracking routine for this slice */
-        cracking_vectorized_x (arg->b, arg->payload, pivot, arg->first, arg->last, arg->ml, arg->mr, &pos_r,pivot_P);
+        cracking_vectorized_x (arg->b, arg->payload, pivot, arg->first, arg->last, arg->ml, arg->mr, &pos_r, pivot_P);
 
         arg->pos_r = pos_r;
 }
@@ -408,6 +408,7 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
                         c_Thread_arg[i].b       = b;
                         c_Thread_arg[i].payload = payloadBuffer;
                         c_Thread_arg[i].pivot    = &pivot;
+                        c_Thread_arg[i].pivotR = pivot_P;
                         c_Thread_arg[i].first   = f;
                         c_Thread_arg[i].last    = (i < nthreads - 1) ? l : last_vector_pos;
                         c_Thread_arg[i].ml      = 0;
@@ -419,6 +420,7 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
                         c_Thread_arg[i].b       = b;
                         c_Thread_arg[i].payload = payloadBuffer;
                         c_Thread_arg[i].pivot    = &pivot;
+                        c_Thread_arg[i].pivotR = pivot_P;
                         c_Thread_arg[i].first   = f;
                         c_Thread_arg[i].last    = l;
                         c_Thread_arg[i].ml = (i < nthreads - 1) ? ml : 0;

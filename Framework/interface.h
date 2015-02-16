@@ -30,6 +30,7 @@ typedef struct {
         targetType *b;      /* BAT to be cracked */
         payloadType *payload;      /* BAT to be cracked */
         targetType *pivot;  /* pivot value */
+        int pivotR; /* pivot relative percent */
         size_t first;         /* offset of first value in slice */
         size_t last;          /* offset of last value in slice */
         size_t pos_r;           /* offset of pivot value */

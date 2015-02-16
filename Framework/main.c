@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
 	struct timeval before, after;
 	gettimeofday(&before, NULL);
 
-	performCrack(buffer, payloadBuffer, valueCount, pivot, PIVOT);
+	performCrack(buffer, payloadBuffer, valueCount, pivot, pivotrel);
 
 	gettimeofday(&after, NULL);
 
