@@ -28,7 +28,7 @@ const int SHUFFLE_PAYLOAD = 0;
 int main(int argc, char* argv[]) {
 
 	int pivotrel = -1;
-	int memorySize = -1;
+	long long int memorySize = -1;
 	const char * distribution = "randomD";
 
     static struct option long_options[] =

@@ -1,4 +1,4 @@
-size=200
+size=$1
 out="results.$(hostname).$(date +"%m_%d_%H_%M_%S")"
 
 for f in $(ls bin); do
