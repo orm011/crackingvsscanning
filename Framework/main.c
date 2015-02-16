@@ -27,13 +27,15 @@ int main(int argc, char* argv[]) {
 	size_t memorySize = (argc > 1 ?atoi(argv[1]):2048);
 	const size_t valueCount = memorySize * 1024 * 1024 / sizeof(targetType);
 	targetType* buffer;
-	assert(posix_memalign((void**)(&buffer), 32, valueCount * sizeof(targetType)) == 0);
+	assert(posix_memalign((void**)(&buffer), 32, valueCount * sizeof(targetType)) == 0); // TODO: fiddle with alignment? why?
 	payloadType* payloadBuffer = (SHUFFLE_PAYLOAD)?(payloadType*) malloc(valueCount * sizeof(payloadType)):NULL;
 	unsigned long long sum_before=0, sum_after=0, sum_prod_val_pos_before=0, sum_prod_val_pos_after=0;
 
 	assert(PIVOT>=0 && PIVOT<=100);
 	targetType pivot = (valueCount * PIVOT) / (100.0);
 
+	// NOTE: all values generated with randomD will lie between 0 and valueCount,
+	// potentially with some bias due to modulo operator.
 	create_values(DISTRIBUTION, buffer, valueCount, valueCount);
 		
 	for (size_t i = 0; i < valueCount; i++){
@@ -134,7 +136,7 @@ int main(int argc, char* argv[]) {
 		for (int i = 0; i < sizeof(events)/sizeof(events[0]); i++)
 			printf("\"%s\": %lld, ", events[i], values[i]);			
 #endif
-		printf("\"WALLCLOCK\": %9ld, \"PROPER\": %d, \"PROPERZEROEDOUT\": %zu, \"SUMCOMP:\": %d, \"SUM_PROD_COMP:\": %d, \"PIVOT\": %d}\n", timediff(before, after), (lastSmaller<firstGreater), everyFirstValueIsZero,(sum_after==sum_before),(sum_prod_val_pos_before == sum_prod_val_pos_after), PIVOT);
+		printf("\"WALLCLOCK\": %9ld, \"PROPER\": %d, \"PROPERZEROEDOUT\": %zu, \"SUMCOMP\": %d, \"SUM_PROD_COMP\": %d, \"PIVOT\": %d}\n", timediff(before, after), (lastSmaller<firstGreater), everyFirstValueIsZero,(sum_after==sum_before),(sum_prod_val_pos_before == sum_prod_val_pos_after), PIVOT);
 	}
 
 
