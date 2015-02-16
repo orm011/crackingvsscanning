@@ -24,8 +24,10 @@ for (algo,gralgo) in byalgo:
     bysize = itertools.groupby(gralgo, lambda r : r.fieldsize)
     for (sz, grsz) in bysize:
         (xax, yax) = zip(*map((lambda r: (r.pivot, r.wallclock)), grsz)) 
-        ax = pl.plot(xax,yax, 'o-', label='%s %s MB' %(algo, sz))
+        ymillis = [ y / 10000 for y in yax ]
+        ax = pl.plot(xax, ymillis, '.-', label='%s %s MB' %(algo, sz))
 
 lgd = pl.legend(loc='center left', bbox_to_anchor=(1, 0.5))        
+pl.xlabel('pivot val within range (rel)')
+pl.ylabel('time (10 millis)')
 pl.savefig(name + '.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
-
