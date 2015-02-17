@@ -1,28 +1,20 @@
-ifeq ($(shell uname),Darwin)
-CFLAGS=-DNO_PAPI -O3 -march=native -mtune=native -g
-LDFLAGS=
-else
 # EVENTS_TO_COUNT={"CYCLE_ACTIVITY:STALLS_L2_PENDING", "CYCLE_ACTIVITY:STALLS_L1D_PENDING", "UNHALTED_CORE_CYCLES"}
-ifeq (,$(findstring bricks,$(shell hostname)))
 EVENTS_TO_COUNT={"UNHALTED_CORE_CYCLES"}
-else
-EVENTS_TO_COUNT={"UNHALTED_CORE_CYCLES"}
-endif
-CFLAGS=-O3 -march=native -mtune=native -ftree-vectorize -funroll-loops -fsched-spec-load  -falign-loops -faggressive-loop-optimizations -g -DEVENTS_TO_COUNT='$(EVENTS_TO_COUNT)' -fopenmp  
-# CFLAGS=-O0 -g -march=native -mtune=native -floop-parallelize-all
-LDFLAGS=-lm
-endif
+
+OUTFLAGS=-O3 -ftree-vectorize -funroll-loops -fsched-spec-load  -falign-loops -faggressive-loop-optimizations -g -DEVENTS_TO_COUNT='$(EVENTS_TO_COUNT)'
+
+# CFLAGS=-O0 -g -march=native -mtune=native -floop-parallelize-all #<- needs config'd gcc
 VECTORSIZE=1024
 THREADS=4
+
 #possible values: randomD,uniformD,skewedD,holgerD,sortedD,revsortedD,almostsortedD
 DISTRIBUTION=randomD
 SEED=100003
 SKEW=10
-ifeq (,$(findstring bricks,$(shell hostname)))
-CFLAGS+=-DNO_PAPI
-else
-LDFLAGS+=-lpapi
-endif
+CFLAGS=$(OUTFLAGS) -march=native -mtune=native -DNO_PAPI  -fopenmp
+LDFLAGS=-lm 
+#LDFLAGS+=-lpapi
+
 
 all: original naive bandwidth vectorizedVanilla vectorizedWithAVXMemcpy vectorizedWithAVXMemcpyAndSIMDCracking cracking_mt_alt_1 cracking_mt_alt_2 cracking_mt_alt_1_vectorized cracking_mt_alt_2_vectorized cracking_mt_alt_1_notmerge cracking_mt_alt_2_notmerge cracking scanning sorting predicated #simd
 
