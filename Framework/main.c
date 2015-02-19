@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
 			firstGreater = valueCount;
 		}
 
-		printf("{\"experiment\": \"%s\", \"sizemb\": %lu, ", argv[0], memorySize);
+		printf("{\"experiment\": \"%s\", \"sizemb\": %lld, ", argv[0], memorySize);
 #ifndef NO_PAPI
 		for (int i = 0; i < sizeof(events)/sizeof(events[0]); i++)
 			printf("\"%s\": %lld, ", events[i], values[i]);			
