@@ -2,6 +2,7 @@
 EVENTS_TO_COUNT={"UNHALTED_CORE_CYCLES"}
 
 OUTFLAGS=-O3 -ftree-vectorize -funroll-loops -fsched-spec-load  -falign-loops -faggressive-loop-optimizations -g -DEVENTS_TO_COUNT='$(EVENTS_TO_COUNT)'
+NOPAPI=-DNO_PAPI
 
 # CFLAGS=-O0 -g -march=native -mtune=native -floop-parallelize-all #<- needs config'd gcc
 VECTORSIZE=1024
@@ -10,10 +11,12 @@ VECTORSIZE=1024
 DISTRIBUTION=randomD
 SEED=100003
 SKEW=10
-CFLAGS=$(OUTFLAGS) -march=native -mtune=native -DNO_PAPI  -fopenmp
-LDFLAGS=-lm 
-#LDFLAGS+=-lpapi
-
+CFLAGS=$(OUTFLAGS) $(NOPAPI) -march=native -mtune=native   -fopenmp
+ifeq ($(strip $NOPAPI),)
+LDFLAGS=-lm
+else
+LDFLAGS=-lm -lpapi
+endif
 
 all: original naive bandwidth vectorizedVanilla vectorizedWithAVXMemcpy vectorizedWithAVXMemcpyAndSIMDCracking cracking_mt_alt_1 cracking_mt_alt_2 cracking_mt_alt_1_vectorized cracking_mt_alt_2_vectorized cracking_mt_alt_1_notmerge cracking_mt_alt_2_notmerge cracking scanning sorting predicated #simd
 
@@ -45,7 +48,7 @@ cracking_mt_alt_1_vectorized: outputdir
 	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/cracking_mt_alt_1_$(VECTORSIZE)_int_vectors_threads_$(THREADS) -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c   Framework/main.c Implementations/cracking_mt_alt_1_vectorized.c Implementations/distributions.c Implementations/create_values.c
 
 cracking_mt_alt_2_vectorized: outputdir
-	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/cracking_mt_alt_2_vectorized -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c   Framework/main.c Implementations/cracking_mt_alt_2_vectorized.c Implementations/distributions.c Implementations/create_values.c -lm
+	gcc -pthread $(CFLAGS) -std=gnu99 -o bin/cracking_mt_alt_2_vectorized -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c   Framework/main.c Implementations/cracking_mt_alt_2_vectorized.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
 cracking_mt_alt_1_notmerge: outputdir
 	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/cracking_mt_alt_1_notmerge_threads_$(THREADS) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT_notmerge.c  Implementations/threadpool.c   Framework/main.c Implementations/cracking_mt_alt_1_notmerge.c Implementations/distributions.c Implementations/create_values.c
@@ -72,7 +75,7 @@ cracking: outputdir
 	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/Cracking_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT.c Implementations/threadpool.c Framework/main.c Implementations/original.c Implementations/distributions.c Implementations/create_values.c
 
 scanning: outputdir
-	gcc $(LDFLAGS) $(CFLAGS) -fopenmp -std=gnu99 -o bin/Scanning -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c Framework/main.c Implementations/distributions.c Implementations/create_values.c
+	gcc $(CFLAGS) -fopenmp -std=gnu99 -o bin/Scanning -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
 sorting: outputdir
 	g++ $(LDFLAGS) $(CFLAGS) -fopenmp -o bin/Sorting_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/sort.c Framework/main.c  Implementations/distributions.c Implementations/create_values.c
