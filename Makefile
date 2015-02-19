@@ -1,9 +1,10 @@
 # EVENTS_TO_COUNT={"CYCLE_ACTIVITY:STALLS_L2_PENDING", "CYCLE_ACTIVITY:STALLS_L1D_PENDING", "UNHALTED_CORE_CYCLES"}
 EVENTS_TO_COUNT={"UNHALTED_CORE_CYCLES"}
 
-OUTFLAGS=-O3 -ftree-vectorize -funroll-loops -fsched-spec-load  -falign-loops -faggressive-loop-optimizations -g -DEVENTS_TO_COUNT='$(EVENTS_TO_COUNT)'
+OUTFLAGS=-O3 -ftree-vectorize -funroll-loops -fsched-spec-load  -falign-loops  -g -DEVENTS_TO_COUNT='$(EVENTS_TO_COUNT)'
 NOPAPI=-DNO_PAPI
 
+#-faggressive-loop-optimizations <- not available in istc*
 # CFLAGS=-O0 -g -march=native -mtune=native -floop-parallelize-all #<- needs config'd gcc
 VECTORSIZE=1024
 
