@@ -39,5 +39,5 @@ int main( int argc, char ** argv) {
   gettimeofday(&after, NULL);
 
   long diff = timediff(before, after);
-  printf("{\"sizemb\": %llu, \"timemilli\": %llu}\n", sizemb, diff/1000);
+  printf("{\"sizemb\": %lld, \"timemilli\": %lld}\n", sizemb, diff/1000);
 }
