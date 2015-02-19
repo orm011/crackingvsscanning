@@ -2,7 +2,7 @@
 EVENTS_TO_COUNT={"UNHALTED_CORE_CYCLES"}
 
 OUTFLAGS=-O3 -ftree-vectorize -funroll-loops -fsched-spec-load  -falign-loops  -g -DEVENTS_TO_COUNT='$(EVENTS_TO_COUNT)'
-NOPAPI=-DNO_PAPI
+PAPI=-DNO_PAPI
 
 #-faggressive-loop-optimizations <- not available in istc*
 # CFLAGS=-O0 -g -march=native -mtune=native -floop-parallelize-all #<- needs config'd gcc
@@ -12,12 +12,10 @@ VECTORSIZE=1024
 DISTRIBUTION=randomD
 SEED=100003
 SKEW=10
-CFLAGS=$(OUTFLAGS) $(NOPAPI) -march=native -mtune=native   -fopenmp
-ifeq ($(strip $NOPAPI),)
+CFLAGS=$(OUTFLAGS) $(PAPI) -march=native -mtune=native -fopenmp
+
 LDFLAGS=-lm
-else
-LDFLAGS=-lm -lpapi
-endif
+
 
 all: original naive bandwidth vectorizedVanilla vectorizedWithAVXMemcpy vectorizedWithAVXMemcpyAndSIMDCracking cracking_mt_alt_1 cracking_mt_alt_2 cracking_mt_alt_1_vectorized cracking_mt_alt_2_vectorized cracking_mt_alt_1_notmerge cracking_mt_alt_2_notmerge cracking scanning sorting predicated #simd
 
