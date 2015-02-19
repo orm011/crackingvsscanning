@@ -14,7 +14,7 @@ static inline cursorDeltas performCrackOnVectors(const targetType* restrict inpu
 	leftOutI = 0,
 	inI;
 	for (inI = 0; inI < ELEMENTS_PER_VECTOR; inI++){
-		rightOutput[rightOutI] = input[inI];
+		rightOutput[rightOutI] = input[inI]; // this step is always done unconditionally. at which point do we restore the original.
 		const unsigned int  isLessThan = (input[inI] < pivot);
 		rightOutI -= (~isLessThan)&1;
 		leftOutput[leftOutI] = input[inI];
@@ -125,7 +125,7 @@ cracking_vectorized_x (
 	//assert(attribute);
 	//assert(pos_r);
 
-	// copy from two potentially separate places into one location
+	// copy from two potentially separate places into one location (predication?)
 	__builtin_memcpy(localBuffer, buffer+first_left, sizeof(targetType)*2*ELEMENTS_PER_VECTOR);
 	__builtin_memcpy(localBuffer+2*ELEMENTS_PER_VECTOR, buffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(targetType)*ELEMENTS_PER_VECTOR);
 
@@ -177,6 +177,8 @@ cracking_vectorized_x (
 					}
 			lowerWriteCursor += deltas.left;
 			upperWriteCursor += deltas.right;
+
+			// are these ever taken, if the skip stuff in the performCrackOnVectors is longer?
 			if (lowerWriteCursor == last_left + 1)
 				lowerWriteCursor = first_right;
 			if (upperWriteCursor == first_right - 1)
