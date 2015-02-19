@@ -79,6 +79,9 @@ scanning: outputdir
 sorting: outputdir
 	g++ $(LDFLAGS) $(CFLAGS) -fopenmp -o bin/sorting_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/sort.c Framework/main.c  Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
+stdpartition: outputdir
+	g++ $(LDFLAGS) $(CFLAGS) -fopenmp -o bin/stdpartition_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/stdpartition.cc Framework/main.c  Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
+
 predicated: outputdir
 	gcc $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/predicated_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Framework/main.c Implementations/distributions.c Implementations/create_values.c Implementations/predicated.c  $(LDFLAGS)
 
