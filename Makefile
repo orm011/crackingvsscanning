@@ -94,3 +94,6 @@ predicatedInRegister2: outputdir
 
 simd: outputdir
 	gcc $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/simd$(VECTORSIZE)Ints_$(DISTRIBUTION) -DVECTORSIZE=$(VECTORSIZE) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/simd.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
+
+memcpybench: outputdir
+	gcc $(CFLAGS) -std=gnu99 memcpybench.c -o bin/memcpybench
