@@ -1,0 +1,15 @@
+orm@istc2:~/crackingvsscanning$ bash scanVsMemcpy.sh
+mkdir -v bin 2>/dev/null || true
+gcc -O3 -ftree-vectorize -funroll-loops -fsched-spec-load  -falign-loops  -g -DEVENTS_TO_COUNT='{"UNHALTED_CORE_CYCLES"}' -DNO_PAPI -march=native -mtune=native -fopenmp -fopenmp -std=gnu99 -o bin/scanning -DSEED=100003 -DSKEW=10 Implementations/bandwidth.c Framework/main.c Implementations/distributions.c Implementations/create_values.c -lm 
+mkdir -v bin 2>/dev/null || true
+gcc -O3 -ftree-vectorize -funroll-loops -fsched-spec-load  -falign-loops  -g -DEVENTS_TO_COUNT='{"UNHALTED_CORE_CYCLES"}' -DNO_PAPI -march=native -mtune=native -fopenmp -std=gnu99 memcpybench.c -o bin/memcpybench
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 4067, "proper": 1, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 100, "distr": "randomD"}
+{"sizemb": 4096, "timemilli": 5539}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 4088, "proper": 1, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 100, "distr": "randomD"}
+{"sizemb": 4096, "timemilli": 5427}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 4043, "proper": 1, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 100, "distr": "randomD"}
+{"sizemb": 4096, "timemilli": 5510}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 4388, "proper": 1, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 100, "distr": "randomD"}
+{"sizemb": 4096, "timemilli": 5439}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 4897, "proper": 1, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 100, "distr": "randomD"}
+{"sizemb": 4096, "timemilli": 5769}
