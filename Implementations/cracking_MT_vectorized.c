@@ -8,9 +8,6 @@ typedef struct {
 const size_t ELEMENTS_PER_VECTOR = VECTORSIZE/sizeof(targetType);
 
 static inline cursorDeltas performCrackOnVectors(const targetType* restrict input, targetType* restrict leftOutput, targetType* restrict rightOutput, const targetType pivot
-#ifdef DO_PAYLOAD_SHUFFLE
-		, const payloadType* restrict inputPayload, payloadType* restrict leftOutputPayload, payloadType* restrict rightOutputPayload
-#endif
 ){
 	ssize_t
 	rightOutI = 0,
@@ -18,24 +15,15 @@ static inline cursorDeltas performCrackOnVectors(const targetType* restrict inpu
 	inI;
 	for (inI = 0; inI < ELEMENTS_PER_VECTOR; inI++){
 		rightOutput[rightOutI] = input[inI];
-#ifdef DO_PAYLOAD_SHUFFLE
-		rightOutputPayload[rightOutI] = inputPayload[inI];
-#endif
 		const unsigned int  isLessThan = (input[inI] < pivot);
 		rightOutI -= (~isLessThan)&1;
 		leftOutput[leftOutI] = input[inI];
-#ifdef DO_PAYLOAD_SHUFFLE
-		leftOutputPayload[leftOutI] = inputPayload[inI];
-#endif
 		leftOutI += isLessThan;
 	}
 	return (cursorDeltas){.left = leftOutI, .right = rightOutI};
 }
 
 static inline cursorDeltas performCrackOnVectors_left(const targetType* restrict input, targetType* restrict leftOutput, targetType* restrict rightOutput, const targetType pivot
-#ifdef DO_PAYLOAD_SHUFFLE
-		, const payloadType* restrict inputPayload, payloadType* restrict leftOutputPayload, payloadType* restrict rightOutputPayload
-#endif
 		, ssize_t max, size_t skip
 ){
 	ssize_t
@@ -44,15 +32,9 @@ static inline cursorDeltas performCrackOnVectors_left(const targetType* restrict
 	inI;
 	for (inI = 0; inI < ELEMENTS_PER_VECTOR; inI++){
 		rightOutput[rightOutI] = input[inI];
-#ifdef DO_PAYLOAD_SHUFFLE
-		rightOutputPayload[rightOutI] = inputPayload[inI];
-#endif
 		const unsigned int  isLessThan = (input[inI] < pivot);
 		rightOutI -= (~isLessThan)&1;
 		leftOutput[leftOutI] = input[inI];
-#ifdef DO_PAYLOAD_SHUFFLE
-		leftOutputPayload[leftOutI] = inputPayload[inI];
-#endif
 		leftOutI += isLessThan;
 		leftOutI += (leftOutI == max) * skip;
 	}
@@ -60,9 +42,6 @@ static inline cursorDeltas performCrackOnVectors_left(const targetType* restrict
 }
 
 static inline cursorDeltas performCrackOnVectors_right(const targetType* restrict input, targetType* restrict leftOutput, targetType* restrict rightOutput, const targetType pivot
-#ifdef DO_PAYLOAD_SHUFFLE
-		, const payloadType* restrict inputPayload, payloadType* restrict leftOutputPayload, payloadType* restrict rightOutputPayload
-#endif
 		, ssize_t min, size_t skip
 ){
 	ssize_t
@@ -71,25 +50,16 @@ static inline cursorDeltas performCrackOnVectors_right(const targetType* restric
 	inI;
 	for (inI = 0; inI < ELEMENTS_PER_VECTOR; inI++){
 		rightOutput[rightOutI] = input[inI];
-#ifdef DO_PAYLOAD_SHUFFLE
-		rightOutputPayload[rightOutI] = inputPayload[inI];
-#endif
 		const unsigned int  isLessThan = (input[inI] < pivot);
 		rightOutI -= (~isLessThan)&1;
 		rightOutI -= (rightOutI == min) * skip;
 		leftOutput[leftOutI] = input[inI];
-#ifdef DO_PAYLOAD_SHUFFLE
-		leftOutputPayload[leftOutI] = inputPayload[inI];
-#endif
 		leftOutI += isLessThan;
 	}
 	return (cursorDeltas){.left = leftOutI, .right = rightOutI};
 }
 
 static inline cursorDeltas performCrackOnVectors_left_right(const targetType* restrict input, targetType* restrict leftOutput, targetType* restrict rightOutput, targetType pivot
-#ifdef DO_PAYLOAD_SHUFFLE
-		, const payloadType* restrict inputPayload, payloadType* restrict leftOutputPayload, payloadType* restrict rightOutputPayload
-#endif
 		, ssize_t max, ssize_t min, size_t skip
 ){
 	ssize_t
@@ -98,16 +68,10 @@ static inline cursorDeltas performCrackOnVectors_left_right(const targetType* re
 	inI;
 	for (inI = 0; inI < ELEMENTS_PER_VECTOR; inI++){
 		rightOutput[rightOutI] = input[inI];
-#ifdef DO_PAYLOAD_SHUFFLE
-		rightOutputPayload[rightOutI] = inputPayload[inI];
-#endif
 		const unsigned int  isLessThan = (input[inI] < pivot);
 		rightOutI -= (~isLessThan)&1;
 		rightOutI -= (rightOutI == min) * skip;
 		leftOutput[leftOutI] = input[inI];
-#ifdef DO_PAYLOAD_SHUFFLE
-		leftOutputPayload[leftOutI] = inputPayload[inI];
-#endif
 		leftOutI += isLessThan;
 		leftOutI += (leftOutI == max) * skip;
 	}
@@ -157,18 +121,14 @@ cracking_vectorized_x (
 	const size_t vectorCount = valueCount/ELEMENTS_PER_VECTOR;
 	size_t lowerReadCursor = first_left, upperReadCursor = last_right + 1;
 	size_t lowerWriteCursor = first_left, upperWriteCursor = last_right;
-	targetType localBuffer[ELEMENTS_PER_VECTOR*3];
+	targetType localBuffer[ELEMENTS_PER_VECTOR*3]; // local buffer? what for?
 	//assert(attribute);
 	//assert(pos_r);
 
-#ifdef DO_PAYLOAD_SHUFFLE
-	payloadType localBufferPayload[ELEMENTS_PER_VECTOR*3];
-	__builtin_memcpy(localBufferPayload, payloadBuffer+first_left, sizeof(payloadType)*2*ELEMENTS_PER_VECTOR);
-	__builtin_memcpy(localBufferPayload+2*ELEMENTS_PER_VECTOR, payloadBuffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(payloadType)*ELEMENTS_PER_VECTOR);
-#endif
-
+	// copy from two potentially separate places into one location
 	__builtin_memcpy(localBuffer, buffer+first_left, sizeof(targetType)*2*ELEMENTS_PER_VECTOR);
 	__builtin_memcpy(localBuffer+2*ELEMENTS_PER_VECTOR, buffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(targetType)*ELEMENTS_PER_VECTOR);
+
 	lowerReadCursor += 2*ELEMENTS_PER_VECTOR;
 	upperReadCursor -= ELEMENTS_PER_VECTOR;
 
@@ -199,32 +159,20 @@ cracking_vectorized_x (
 			if (lowerWriteCursor <= last_left && lowerWriteCursor > last_left - ELEMENTS_PER_VECTOR + 1 &&
 					upperWriteCursor >= first_right && upperWriteCursor < first_right + ELEMENTS_PER_VECTOR - 1) {
 				deltas = performCrackOnVectors_left_right(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer + lowerWriteCursor, buffer + upperWriteCursor, pivot
-#ifdef DO_PAYLOAD_SHUFFLE
-						,localBufferPayload+(vectorI%3)*ELEMENTS_PER_VECTOR, payloadBuffer + lowerWriteCursor, payloadBuffer + upperWriteCursor
-#endif
 						, (ssize_t) last_left - lowerWriteCursor + 1, (ssize_t) first_right - upperWriteCursor - 1, skip
 				);
 			} else
 				if (lowerWriteCursor <= last_left && lowerWriteCursor > last_left - ELEMENTS_PER_VECTOR + 1) {
 					deltas = performCrackOnVectors_left(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer + lowerWriteCursor, buffer + upperWriteCursor, pivot
-#ifdef DO_PAYLOAD_SHUFFLE
-							,localBufferPayload+(vectorI%3)*ELEMENTS_PER_VECTOR, payloadBuffer + lowerWriteCursor, payloadBuffer + upperWriteCursor
-#endif
-							, (ssize_t) last_left - lowerWriteCursor + 1, skip
+						, (ssize_t) last_left - lowerWriteCursor + 1, skip
 					);
 				} else
 					if (upperWriteCursor >= first_right && upperWriteCursor < first_right + ELEMENTS_PER_VECTOR - 1) {
 						deltas = performCrackOnVectors_right(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer + lowerWriteCursor, buffer + upperWriteCursor, pivot
-#ifdef DO_PAYLOAD_SHUFFLE
-								,localBufferPayload+(vectorI%3)*ELEMENTS_PER_VECTOR, payloadBuffer + lowerWriteCursor, payloadBuffer + upperWriteCursor
-#endif
 								, (ssize_t) first_right - upperWriteCursor - 1, skip
 						);
 					} else {
 						deltas = performCrackOnVectors(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer + lowerWriteCursor, buffer + upperWriteCursor, pivot
-#ifdef DO_PAYLOAD_SHUFFLE
-								,localBufferPayload+(vectorI%3)*ELEMENTS_PER_VECTOR, payloadBuffer + lowerWriteCursor, payloadBuffer + upperWriteCursor
-#endif
 						);
 					}
 			lowerWriteCursor += deltas.left;
@@ -243,17 +191,11 @@ cracking_vectorized_x (
 				}
 				if(lowerReadCursor-lowerWriteCursor-skip_left < upperWriteCursor-(upperReadCursor-1)-skip_right){
 					__builtin_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+lowerReadCursor, sizeof(targetType)*ELEMENTS_PER_VECTOR);
-#ifdef DO_PAYLOAD_SHUFFLE
-					__builtin_memcpy(localBufferPayload+(vectorI%3)*ELEMENTS_PER_VECTOR, payloadBuffer+lowerReadCursor, sizeof(payloadType)*ELEMENTS_PER_VECTOR);
-#endif
 					lowerReadCursor+=ELEMENTS_PER_VECTOR;
 					if (lowerReadCursor == last_left + 1)
 						lowerReadCursor = first_right;
 				} else {
 					__builtin_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(targetType)*ELEMENTS_PER_VECTOR);
-#ifdef DO_PAYLOAD_SHUFFLE
-					__builtin_memcpy(localBufferPayload+(vectorI%3)*ELEMENTS_PER_VECTOR, payloadBuffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(payloadType)*ELEMENTS_PER_VECTOR);
-#endif
 					upperReadCursor-=ELEMENTS_PER_VECTOR;
 					if (upperReadCursor == first_right)
 						upperReadCursor = last_left + 1;
@@ -274,24 +216,15 @@ cracking_vectorized_x (
 		assert (vectorR >= vectorCount || lowerWriteCursor + ELEMENTS_PER_VECTOR <= lowerReadCursor);
 		assert (vectorR >= vectorCount || upperWriteCursor - ELEMENTS_PER_VECTOR >= upperReadCursor - 1);
 		cursorDeltas deltas = performCrackOnVectors(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer + lowerWriteCursor, buffer + upperWriteCursor, pivot
-#ifdef DO_PAYLOAD_SHUFFLE
-				,localBufferPayload+(vectorI%3)*ELEMENTS_PER_VECTOR, payloadBuffer + lowerWriteCursor, payloadBuffer + upperWriteCursor
-#endif
 		);
 		lowerWriteCursor += deltas.left;
 		upperWriteCursor += deltas.right;
 		if (vectorR < vectorCount) {
 			if(lowerReadCursor-lowerWriteCursor < upperWriteCursor-(upperReadCursor-1)){
 				__builtin_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+lowerReadCursor, sizeof(targetType)*ELEMENTS_PER_VECTOR);
-#ifdef DO_PAYLOAD_SHUFFLE
-				__builtin_memcpy(localBufferPayload+(vectorI%3)*ELEMENTS_PER_VECTOR, payloadBuffer+lowerReadCursor, sizeof(payloadType)*ELEMENTS_PER_VECTOR);
-#endif
 				lowerReadCursor+=ELEMENTS_PER_VECTOR;
 			} else {
 				__builtin_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(targetType)*ELEMENTS_PER_VECTOR);
-#ifdef DO_PAYLOAD_SHUFFLE
-				__builtin_memcpy(localBufferPayload+(vectorI%3)*ELEMENTS_PER_VECTOR, payloadBuffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(payloadType)*ELEMENTS_PER_VECTOR);
-#endif
 				upperReadCursor-=ELEMENTS_PER_VECTOR;
 			}
 			vectorR++;
