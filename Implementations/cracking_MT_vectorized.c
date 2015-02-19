@@ -342,7 +342,8 @@ cracking_MT_vectorized_crackThread ( c_Thread_t *arg )
 }
 /* new multi-threaded crack code; Alternative 1+2 */
 void
-cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* payloadBuffer, targetType pivot, size_t *pos, int nthreads, int alt, const targetType pivot_P)
+cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* payloadBuffer, targetType pivot,
+		size_t *pos, int nthreads, int alt, const targetType pivot_P)
 {
         size_t n = last - first + 1; /* total # tuples / values */
         size_t ml;                   /* # tuples / values in left slice */
@@ -355,16 +356,20 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 	targetType *temp;
 	size_t remaining_elements = 0; /*elements that do not "fit" in vectors*/
 
+	//TODO: note the base case sizes.
         /* adjust nthreads */
         if ((size_t) nthreads > n / 10) {
                 /* more threads / smaller slices does not make sense */
                 nthreads = (int) (n / 10) + 1;
         }
+	// at 1024 bytes -> 256 elts
 	mm = (n / nthreads);
+
 	remaining_elements = (mm % (2 * ELEMENTS_PER_VECTOR)) * nthreads;
 	mm = (n - remaining_elements) / nthreads;
 	remaining_elements += ((n - remaining_elements) % nthreads);
 	last_vector_pos -= remaining_elements;
+	assert(((n - remaining_elements) % nthreads) == 0);
 	mm -= ((n - remaining_elements) % nthreads);
 
         if (alt == 1) {
@@ -516,7 +521,7 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 
 	/*The rest of the values if the elements are not divided by the vector size*/
 	if(remaining_elements > 0)
-	{
+	{   abort(); // just to be aware when this code does actually run
 		size_t qualifying_elements = 0;
 		size_t lowerCursor = last_vector_pos + 1, upperCursor = last_vector_pos + remaining_elements;
 		size_t *tmp = malloc(remaining_elements*sizeof(targetType));
