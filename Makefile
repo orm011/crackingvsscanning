@@ -74,10 +74,10 @@ cracking: outputdir
 	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/Cracking_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT.c Implementations/threadpool.c Framework/main.c Implementations/original.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
 scanning: outputdir
-	gcc $(CFLAGS) -fopenmp -std=gnu99 -o bin/Scanning -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS) 
+	gcc $(CFLAGS) -fopenmp -std=gnu99 -o bin/scanning -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS) 
 
 sorting: outputdir
-	g++ $(LDFLAGS) $(CFLAGS) -fopenmp -o bin/Sorting_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/sort.c Framework/main.c  Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
+	g++ $(LDFLAGS) $(CFLAGS) -fopenmp -o bin/sorting_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/sort.c Framework/main.c  Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
 predicated: outputdir
 	gcc $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/predicated_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Framework/main.c Implementations/distributions.c Implementations/create_values.c Implementations/predicated.c  $(LDFLAGS)
