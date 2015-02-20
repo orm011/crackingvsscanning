@@ -1,0 +1,24 @@
+orm@istc2:~/crackingvsscanning$ echo {1..5} | xargs -d' ' -Ix  sh -c 'OMP_NUM_THREADS=64 GOMP_CPU_AFFINITY="0-63" ./bin/scanning --sizemb 4096 --pivot 1'
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 96, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 99, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 90, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 90, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 90, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+orm@istc2:~/crackingvsscanning$ echo {1..5} | xargs -d' ' -Ix  sh -c 'OMP_NUM_THREADS=64 GOMP_CPU_AFFINITY="0-63" ./bin/scanning --sizemb 4096 --pivot 1'
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 89, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 90, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 93, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 90, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 106, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+orm@istc2:~/crackingvsscanning$ echo {1..5} | xargs -d' ' -Ix  sh -c 'OMP_NUM_THREADS=64 ./bin/scanning --sizemb 4096 --pivot 1'
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 106, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 110, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 100, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 105, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 112, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+orm@istc2:~/crackingvsscanning$ echo {1..5} | xargs -d' ' -Ix  sh -c 'OMP_NUM_THREADS=64 ./bin/scanning --sizemb 4096 --pivot 1'
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 106, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 104, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 102, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 101, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
+{"experiment": "./bin/scanning", "sizemb": 4096, "wallclockmilli": 106, "proper": 0, "proper_zeroed_out": 0, "sumcomp": 1, "sum_prod_comp": 1, "pivot": 1, "distr": "randomD"}
