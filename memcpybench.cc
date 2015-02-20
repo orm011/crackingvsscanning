@@ -5,9 +5,32 @@
 
 #include <sys/time.h>
 #include <getopt.h>
+#include <algorithm>
+
+using namespace std;
 
 long timediff(struct timeval before, struct timeval after){
   return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
+}
+
+void * naive_memcpy(void * dst, const void * src, size_t num) {
+	assert( num % sizeof(uint64_t) == 0); // only deal with nice numbers
+
+	for (int i = 0; i < num; i++) {
+		*reinterpret_cast<uint64_t *>(dst) = *reinterpret_cast<const uint64_t *>(src);
+	}
+
+	return dst;
+}
+
+
+void memcpy_test(void * (*cpyfun)(void *, const void *, size_t)){
+	const size_t len = 1024;
+	char * dst = new char[len];
+	char * src = new char[len];
+
+	cpyfun(dst, src, len);
+	assert(equal(src, src + len, dst));
 }
 
 
@@ -44,6 +67,8 @@ int main( int argc, char ** argv) {
     memcpy(dst, src, num);
   } else if (strcmp(algo, "builtin") == 0) {
     __builtin_memcpy(dst, src, num); 
+  } else if (strcmp(algo, "naive") == 0 ) {
+    naive_memcpy(dst, src, num);
   } else {
     assert(("invalid algo", 0));    
   }
