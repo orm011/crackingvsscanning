@@ -55,7 +55,7 @@ void memcpy_test(void * (*cpyfun)(void *, const void *, size_t)) {
 	char * src = new char[len];
 	void *dst = nullptr;
 
-	posix_memalign(&dst, linesize, len);
+	assert(0 == posix_memalign(&dst, linesize, len));
 
 	cpyfun(dst, src, len);
 	assert(equal(src, src + len, (char*)dst));
