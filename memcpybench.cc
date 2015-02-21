@@ -92,7 +92,7 @@ int main( int argc, char ** argv) {
   const char * src = (char*)malloc(num);
   void * dst = nullptr;
 
-  posix_memalign(&dst, linesize, num); // aligning is helpful for some impls.
+  assert(0 == posix_memalign(&dst, linesize, num)); // aligning is helpful for some impls.
 
   struct timeval before, after;
 
