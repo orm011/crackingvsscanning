@@ -25,9 +25,12 @@ void * naive_memcpy(void * dst, const void * src, size_t num) {
 	auto dstfoo = reinterpret_cast<t *>(dst);
 	const auto end = reinterpret_cast<t *>(((char*)dst) + num);
 
-	for (; dstfoo < end; dstfoo+=1, srcfoo+=1) {
-		*dstfoo  = *srcfoo;
+	for (int i = 0; i < num; i+=sizeof(uint64_t)) {
+		*reinterpret_cast<uint64_t *>((char*)dst + i) = *reinterpret_cast<const uint64_t *>((const char*)src + i);
 	}
+//	for (; dstfoo < end; dstfoo+=1, srcfoo+=1) {
+//		*dstfoo  = *srcfoo;
+//	}
 
 	return dst;
 }
