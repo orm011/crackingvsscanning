@@ -25,17 +25,10 @@ void * naive_memcpy(void * dst, const void * src, size_t num) {
 	auto dstfoo = reinterpret_cast<t *>(dst);
 	const auto end = reinterpret_cast<t *>(((char*)dst) + num);
 
-	for (; dstfoo < end; dstfoo+=8, srcfoo+=8) {
+	for (; dstfoo < end; dstfoo+=1, srcfoo+=1) {
 		__builtin_prefetch(srcfoo + 8, 0, 0); //next word, read, non-temporal
 		//__builtin_prefetch(dstfoo + 8, 1, 0); // next word, write,
-		dstfoo[0] = srcfoo[0];
-		dstfoo[1] = srcfoo[1];
-		dstfoo[2] = srcfoo[2];
-		dstfoo[3] = srcfoo[3];
-		dstfoo[4] = srcfoo[4];
-		dstfoo[5] = srcfoo[5];
-		dstfoo[6] = srcfoo[6];
-		dstfoo[7] = srcfoo[7];
+		*dstfoo  = *srcfoo;
 	}
 
 	return dst;
