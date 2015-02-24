@@ -68,8 +68,8 @@ int main(int argc, char* argv[]) {
 	const size_t valueCount = memorySize * 1024 * 1024 / sizeof(targetType);
 	targetType* buffer;
 
-	auto r = posix_memalign((void**)(&buffer), 32, valueCount * sizeof(targetType)); // TODO: fiddle with alignment? why?
-	assert (r == 0);
+	int r = posix_memalign((void**)(&buffer), 32, valueCount * sizeof(targetType)); // TODO: fiddle with alignment? why?
+	assert(r == 0);
 	payloadType* payloadBuffer = (SHUFFLE_PAYLOAD)?(payloadType*) malloc(valueCount * sizeof(payloadType)):NULL;
 	unsigned long long sum_before=0, sum_after=0, sum_prod_val_pos_before=0, sum_prod_val_pos_after=0;
 
