@@ -396,48 +396,48 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 		}
 		assert(i == j);
 	}
-//	i = 0;
-//	j = alt * nthreads - alt;
-//	while (i < j) {
-//		/* skip over entirely smaller slices from beginning */
-//		while (i < j && c_Thread_arg[i].pos_r > c_Thread_arg[i].last)
-//			i++;
-//		{
-//			/* skip over entirely larger slices from end */
-//			while (i < j && (c_Thread_arg[j].pos_r <=  c_Thread_arg[j].first))
-//				j--;
-//			if (i < j) {
-//				/* size of "wrong" part of left slice with larger values */
-//				const size_t si = c_Thread_arg[i].last + 1 - c_Thread_arg[i].pos_r;
-//				/* size of "wrong" part of right slice with smaller values */
-//				const size_t sj = c_Thread_arg[j].pos_r - c_Thread_arg[j].first;
-//				const size_t sk = si > sj ? sj : si;
-//				const size_t st = sk * sizeof(targetType);
-//				const size_t pi = c_Thread_arg[i].pos_r;
-//				const size_t pj = c_Thread_arg[j].pos_r - sk;
-//
-//				assert(si <= mm);
-//				assert(sj <= mm);
-//				memcpy(temp, &b[pi], st);
-//				memcpy(&b[pi], &b[pj], st);
-//				memcpy(&b[pj], temp, st);
-//#ifdef DO_PAYLOAD_SHUFFLE
-//				const size_t stp = sk * sizeof(payloadType);
-//				memcpy(tempPayload, &payloadBuffer[pi], stp);
-//				memcpy(&payloadBuffer[pi], &payloadBuffer[pj], stp);
-//				memcpy(&payloadBuffer[pj], tempPayload, stp);
-//#endif
-//				c_Thread_arg[i].pos_r += sk;
-//				c_Thread_arg[j].pos_r -= sk;
-//
-//				assert((si <= sj) == (c_Thread_arg[i].pos_r == c_Thread_arg[i].last + 1));
-//				assert((sj <= si) == (c_Thread_arg[j].pos_r == c_Thread_arg[j].first));
-//
-//				i += (si <= sj);
-//				j -= (sj <= si);
-//			}
-//		}
-//	}
+	i = 0;
+	j = alt * nthreads - alt;
+	while (i < j) {
+		/* skip over entirely smaller slices from beginning */
+		while (i < j && c_Thread_arg[i].pos_r > c_Thread_arg[i].last)
+			i++;
+		{
+			/* skip over entirely larger slices from end */
+			while (i < j && (c_Thread_arg[j].pos_r <=  c_Thread_arg[j].first))
+				j--;
+			if (i < j) {
+				/* size of "wrong" part of left slice with larger values */
+				const size_t si = c_Thread_arg[i].last + 1 - c_Thread_arg[i].pos_r;
+				/* size of "wrong" part of right slice with smaller values */
+				const size_t sj = c_Thread_arg[j].pos_r - c_Thread_arg[j].first;
+				const size_t sk = si > sj ? sj : si;
+				const size_t st = sk * sizeof(targetType);
+				const size_t pi = c_Thread_arg[i].pos_r;
+				const size_t pj = c_Thread_arg[j].pos_r - sk;
+
+				assert(si <= mm);
+				assert(sj <= mm);
+				memcpy(temp, &b[pi], st);
+				memcpy(&b[pi], &b[pj], st);
+				memcpy(&b[pj], temp, st);
+#ifdef DO_PAYLOAD_SHUFFLE
+				const size_t stp = sk * sizeof(payloadType);
+				memcpy(tempPayload, &payloadBuffer[pi], stp);
+				memcpy(&payloadBuffer[pi], &payloadBuffer[pj], stp);
+				memcpy(&payloadBuffer[pj], tempPayload, stp);
+#endif
+				c_Thread_arg[i].pos_r += sk;
+				c_Thread_arg[j].pos_r -= sk;
+
+				assert((si <= sj) == (c_Thread_arg[i].pos_r == c_Thread_arg[i].last + 1));
+				assert((sj <= si) == (c_Thread_arg[j].pos_r == c_Thread_arg[j].first));
+
+				i += (si <= sj);
+				j -= (sj <= si);
+			}
+		}
+	}
 
 	/* determine pivot (This is useful only for result validation)*/
 	f = BUN_NONE;
