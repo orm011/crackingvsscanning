@@ -25,10 +25,26 @@ void * naive_memcpy(void * dst, const void * src, size_t num) {
 	auto dstfoo = reinterpret_cast<t *>(dst);
 	const auto end = reinterpret_cast<t *>(((char*)dst) + num);
 
+	for (; dstfoo < end; dstfoo+=1, srcfoo+=1) {
+		*dstfoo  = *srcfoo;
+	}
+
+	return dst;
+}
+
+
+void * pf_memcpy(void * dst, const void * src, size_t num) {
+	typedef uint64_t t;
+	assert( num % sizeof (t) == 0); // only deal with nice numbers
+
+	auto srcfoo = reinterpret_cast<const t * >(src);
+	auto dstfoo = reinterpret_cast<t *>(dst);
+	const auto end = reinterpret_cast<t *>(((char*)dst) + num);
+
 	for (; dstfoo < end; dstfoo+=8, srcfoo+=8) {
+		// tried + 8, + 24, but +16 did better.
+		// tried 0,1,2,3 for temporality, 3 did better.
 		__builtin_prefetch(srcfoo + 16, 0, 3); //next word, read, non-temporal
-//		__builtin_prefetch(dstfoo + 16, 1, 3); // next word, write,
-//		*dstfoo  = *srcfoo;
 		dstfoo[0] = srcfoo[0];
 		dstfoo[1] = srcfoo[1];
 		dstfoo[2] = srcfoo[2];
@@ -37,7 +53,6 @@ void * naive_memcpy(void * dst, const void * src, size_t num) {
 		dstfoo[5] = srcfoo[5];
 		dstfoo[6] = srcfoo[6];
 		dstfoo[7] = srcfoo[7];
-//		*dstfoo  = *srcfoo;
 	}
 
 	return dst;
@@ -122,11 +137,12 @@ int main( int argc, char ** argv) {
 	fun = __builtin_memcpy;
   } else if (strcmp(algo, "naive") == 0 ) {
 	 fun = naive_memcpy;
-  } else if (strcmp(algo, "nt") == 0) {
+  } else if (strcmp(algo, "mmx") == 0) {
 	  fun = nt_memcpy;
+  } else if (strcmp(algo, "pf") == 0) {
+	  fun = pf_memcpy;
   } else {
 	  assert(("invalid algo", 0));
-
   }
 
   if (test) {
