@@ -120,6 +120,11 @@ cracking_vectorized_x (
 		size_t *pos_r, /*return position*/
 		const targetType pivot_P
 ) {
+	struct timeval tac;
+	struct timeval tbc;
+
+	gettimeofday(&tac, NULL);
+
 	size_t last_left = first_left + ml - 1, first_right = last_right + 1 - mr;
 	assert(!(ml && mr && last_left + 1 < first_right) || (ml%(2*ELEMENTS_PER_VECTOR) == 0 && mr%(2*ELEMENTS_PER_VECTOR) == 0));
 	size_t valueCount = ( (ml && mr && last_left + 1 < first_right) ?  ml + mr : last_right - first_left + 1 );
@@ -267,6 +272,9 @@ cracking_vectorized_x (
 	}
 #endif
 	*pos_r = lowerWriteCursor;
+	gettimeofday(&tbc, NULL);
+	long int diff = timediff(tac, tbc);
+	printf("ac -> bc: %07ld\n", diff);
 }
 /* crackThread for multi-threaded crack code */
 void
