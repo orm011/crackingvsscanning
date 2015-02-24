@@ -17,7 +17,7 @@ import json
 GCC_FLAGS = [
   'align-loops','tree-vectorize',
   'unroll-loops', 'sched-spec-load','align-loops',
-  'aggressive-loop-optimizations',
+  #'aggressive-loop-optimizations',
   'align-functions', 'align-jumps', 'align-labels',
   'asynchronous-unwind-tables',
   'branch-count-reg', 'branch-probabilities',
@@ -47,7 +47,7 @@ class GccFlagsTuner(MeasurementInterface):
     pr = self.call_program('cat /proc/cpuinfo | grep processor | wc -l')
     assert pr['returncode'] == 0
     numprocs = int(pr['stdout'])
-    manipulator.add_parameter(IntegerParameter('threads', numprocs/2-1, numprocs + 1))
+    manipulator.add_parameter(IntegerParameter('threads', numprocs/4-1, numprocs + 1))
 
     for flag in GCC_FLAGS:
       manipulator.add_parameter(
@@ -84,11 +84,19 @@ class GccFlagsTuner(MeasurementInterface):
     compile_result = self.call_program(gcc_cmd)
     assert compile_result['returncode'] == 0
 
-    run_result = self.call_program('./bin/cracking_mt_alt_2_vectorized --sizemb 500 --pivot 50')
+    run_result = self.call_program('./bin/cracking_mt_alt_2_vectorized --sizemb 2048 --pivot 50')
     assert run_result['returncode'] == 0
 
     lat = int(json.loads(run_result['stdout'])['wallclockmilli'])
     return Result(time=lat)
+
+  def save_final_config(self, configuration):
+    """called at the end of tuning"""
+    print configuration.data
+    print "Best flags also  written to gccflags_final_config.json"
+    self.manipulator().save_to_file(configuration.data,
+                                    'gccflags_final_config.json')
+
 
 if __name__ == '__main__':
   argparser = opentuner.default_argparser()
