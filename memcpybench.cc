@@ -17,11 +17,22 @@ long timediff(struct timeval before, struct timeval after){
   return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
 }
 
-void * naive_memcpy(void * dst, const void * src, size_t num) {
-	assert( num % sizeof(uint64_t) == 0); // only deal with nice numbers
+struct foo {
+	uint64_t arr[8];
+};
 
-	for (int i = 0; i < num; i+=sizeof(uint64_t)) {
-		*reinterpret_cast<uint64_t *>((char*)dst + i) = *reinterpret_cast<const uint64_t *>((const char*)src + i);
+void * naive_memcpy(void * dst, const void * src, size_t num) {
+	static_assert(sizeof (struct foo) == 64, "size");
+
+	assert( num % sizeof (struct foo) == 0); // only deal with nice numbers
+
+	auto srcfoo = reinterpret_cast<const struct foo* >(src);
+	auto dstfoo = reinterpret_cast<struct foo *>(dst);
+	const auto end = reinterpret_cast<struct foo*>(((char*)dst) + num);
+
+	for (; dstfoo < end; dstfoo++, srcfoo++) {
+		//__builtin_prefetch (const void *addr, ...);
+		*dstfoo = *srcfoo;
 	}
 
 	return dst;

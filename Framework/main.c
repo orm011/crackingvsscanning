@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     // fprintf(stderr, "command: %s, pivot: %d, sizemb: %d\n", argv[0], pivotrel, memorySize);
 	assert(pivotrel>=0 && pivotrel<=100);
 	assert(memorySize > 0);
-
+	//assert(sizemb/sizeof(targetType) < )
 
 	const size_t valueCount = memorySize * 1024 * 1024 / sizeof(targetType);
 	targetType* buffer;
