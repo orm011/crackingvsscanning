@@ -100,3 +100,5 @@ simd: outputdir
 
 memcpybench: outputdir
 	g++ $(CFLAGS) -std=c++0x memcpybench.cc -o bin/memcpybench
+
+cracking: cracking_mt_alt_2_vectorized

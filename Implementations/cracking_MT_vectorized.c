@@ -1,5 +1,11 @@
 #include "../Framework/cracking_MT_vectorized.h"
+#include <sys/time.h>
 //#include "common.h"
+
+static long timediff(struct timeval before, struct timeval after){
+	return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
+}
+
 
 typedef struct {
 	ssize_t left, right;
@@ -280,6 +286,14 @@ void
 cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* payloadBuffer, targetType pivot,
 		size_t *pos, int nthreads, int alt, const targetType pivot_P)
 {
+	struct timeval tva;
+	struct timeval tvb;
+	struct timeval tvc;
+	struct timeval tvd;
+
+
+	gettimeofday(&tva, NULL);
+
 	size_t n = last - first + 1; /* total # tuples / values */
 	size_t ml;                   /* # tuples / values in left slice */
 	size_t mr;                   /* # tuples / values in right slice */
@@ -341,6 +355,7 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 		exit(EXIT_FAILURE);
 	}
 
+
 	/* initialize crackThread arguments */
 	if (alt == 1) {
 		/* Alternative 1: each thread cracks one consecutive slice */
@@ -368,7 +383,12 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 		}
 	}
 
+
+	gettimeofday(&tvb, NULL);
+
 	MRschedule(nthreads, c_Thread_arg, cracking_MT_vectorized_crackThread);
+
+	gettimeofday(&tvc, NULL);
 
 	/* "meta-crack": move "wrong" parts of slices to correct final location */
 	if (alt == 2) {
@@ -538,6 +558,25 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 	assert((f == last + 1 && b[f-1] < pivot) || b[f]   >= pivot);
 	assert((f == first    && b[f]   >= pivot) || b[f-1] < pivot);
 	*pos = (size_t) (f == 0 ? 0 : f - 1);
+
+	gettimeofday(&tvd, NULL);
+
+
+	struct timeval tvs;
+	struct timeval tvt;
+	gettimeofday(&tvs, NULL);
+	gettimeofday(&tvt, NULL);
+
+	long int diffab = timediff(tva, tvb);
+	long int diffbc = timediff(tvb, tvc);
+	long int diffcd = timediff(tvc, tvd);
+	long int diffst = timediff(tvs, tvt);
+
+	printf(	"a to b: %07ld\n"
+			"b to c: %07ld\n"
+			"c to d: %07ld\n"
+			"s to t: %07ld\n",
+			diffab, diffbc, diffcd, diffst);
 
 	free(temp);
 #ifdef DO_PAYLOAD_SHUFFLE
