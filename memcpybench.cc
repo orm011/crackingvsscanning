@@ -17,7 +17,7 @@ long timediff(struct timeval before, struct timeval after){
   return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
 }
 
-void * naive2_memcpy(void * dst, const void * src, size_t num) {
+void * naive_memcpy(void * dst, const void * src, size_t num) {
 	typedef uint64_t t;
 
 	auto srcfoo = reinterpret_cast<const t * >(src);
@@ -27,18 +27,6 @@ void * naive2_memcpy(void * dst, const void * src, size_t num) {
 
 	for (; dstfoo < end; dstfoo+=1, srcfoo+=1) {
 		*dstfoo  = *srcfoo;
-	}
-
-	return dst;
-}
-
-
-void * naive_memcpy(void * dst, const void * src, size_t num) {
-	typedef uint64_t t;
-	assert( num % sizeof (t) == 0); // only deal with nice numbers
-
-	for (long long int i = 0; i < num; i+=sizeof(uint64_t)) {
-		*reinterpret_cast<uint64_t *>((char*)dst + i) = *reinterpret_cast<const uint64_t *>((const char*)src + i);
 	}
 
 	return dst;
@@ -156,8 +144,6 @@ int main( int argc, char ** argv) {
 	fun = __builtin_memcpy;
   } else if (strcmp(algo, "naive") == 0 ) {
 	 fun = naive_memcpy;
-  } else if (strcmp(algo, "naive2") == 0 ) {
-	 fun = naive2_memcpy;
   } else if (strcmp(algo, "mmx") == 0) {
 	  fun = nt_memcpy;
   } else if (strcmp(algo, "pf") == 0) {
