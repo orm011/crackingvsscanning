@@ -51,20 +51,20 @@ void * pf_memcpy(void * dst, const void * src, size_t num) {
 
 	auto srcfoo = reinterpret_cast<const t * >(src);
 	auto dstfoo = reinterpret_cast<t *>(dst);
-	const auto end = reinterpret_cast<t *>(((char*)dst) + num);
+	const auto numt = num / sizeof(t);
 
-	for (; dstfoo < end; dstfoo+=8, srcfoo+=8) {
+	for (int i = 0; i < numt; i+=8) {
 		// tried + 8, + 24, but +16 did better.
 		// tried 0,1,2,3 for temporality, 3 did better.
 		__builtin_prefetch(srcfoo + 16, 0, 3); //next word, read, non-temporal
-		dstfoo[0] = srcfoo[0];
-		dstfoo[1] = srcfoo[1];
-		dstfoo[2] = srcfoo[2];
-		dstfoo[3] = srcfoo[3];
-		dstfoo[4] = srcfoo[4];
-		dstfoo[5] = srcfoo[5];
-		dstfoo[6] = srcfoo[6];
-		dstfoo[7] = srcfoo[7];
+		dstfoo[i] = srcfoo[i];
+		dstfoo[i+1] = srcfoo[i+1];
+		dstfoo[i+2] = srcfoo[i+2];
+		dstfoo[i+3] = srcfoo[i+3];
+		dstfoo[i+4] = srcfoo[i+4];
+		dstfoo[i+5] = srcfoo[i+5];
+		dstfoo[i+6] = srcfoo[i+6];
+		dstfoo[i+7] = srcfoo[i+7];
 	}
 
 	return dst;
@@ -97,6 +97,10 @@ void memcpy_test(void * (*cpyfun)(void *, const void *, size_t)) {
 	const size_t len = 1024;
 	char * src = new char[len];
 	void *dst = nullptr;
+
+	for (unsigned int i = 0; i < len/sizeof(int); i+=sizeof(int)) {
+		src[i] = i+1;
+	}
 
 	assert(0 == posix_memalign(&dst, linesize, len));
 
