@@ -18,7 +18,7 @@ long timediff(struct timeval before, struct timeval after){
 }
 
 void * naive_memcpy(void * dst, const void * src, size_t num) {
-	using t = uint64_t;
+	typedef uint64_t t;
 	assert( num % sizeof (t) == 0); // only deal with nice numbers
 
 	auto srcfoo = reinterpret_cast<const t * >(src);
