@@ -17,22 +17,25 @@ long timediff(struct timeval before, struct timeval after){
   return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
 }
 
-struct foo {
-	uint64_t arr[8];
-};
-
 void * naive_memcpy(void * dst, const void * src, size_t num) {
-	static_assert(sizeof (struct foo) == 64, "size");
+	using t = uint64_t;
+	assert( num % sizeof (t) == 0); // only deal with nice numbers
 
-	assert( num % sizeof (struct foo) == 0); // only deal with nice numbers
+	auto srcfoo = reinterpret_cast<const t * >(src);
+	auto dstfoo = reinterpret_cast<t *>(dst);
+	const auto end = reinterpret_cast<t *>(((char*)dst) + num);
 
-	auto srcfoo = reinterpret_cast<const struct foo* >(src);
-	auto dstfoo = reinterpret_cast<struct foo *>(dst);
-	const auto end = reinterpret_cast<struct foo*>(((char*)dst) + num);
-
-	for (; dstfoo < end; dstfoo++, srcfoo++) {
-		//__builtin_prefetch (const void *addr, ...);
-		*dstfoo = *srcfoo;
+	for (; dstfoo < end; dstfoo+=8, srcfoo+=8) {
+		__builtin_prefetch(srcfoo + 8, 0, 0); //next word, read, non-temporal
+		//__builtin_prefetch(dstfoo + 8, 1, 0); // next word, write,
+		dstfoo[0] = srcfoo[0];
+		dstfoo[1] = srcfoo[1];
+		dstfoo[2] = srcfoo[2];
+		dstfoo[3] = srcfoo[3];
+		dstfoo[4] = srcfoo[4];
+		dstfoo[5] = srcfoo[5];
+		dstfoo[6] = srcfoo[6];
+		dstfoo[7] = srcfoo[7];
 	}
 
 	return dst;
