@@ -37,7 +37,7 @@ void * naive_memcpy(void * dst, const void * src, size_t num) {
 	typedef uint64_t t;
 	assert( num % sizeof (t) == 0); // only deal with nice numbers
 
-	for (int i = 0; i < num; i+=sizeof(uint64_t)) {
+	for (long long int i = 0; i < num; i+=sizeof(uint64_t)) {
 		*reinterpret_cast<uint64_t *>((char*)dst + i) = *reinterpret_cast<const uint64_t *>((const char*)src + i);
 	}
 
@@ -98,13 +98,16 @@ void memcpy_test(void * (*cpyfun)(void *, const void *, size_t)) {
 	char * src = new char[len];
 	void *dst = nullptr;
 
-	for (unsigned int i = 0; i < len/sizeof(int); i+=sizeof(int)) {
+	for (long unsigned int i = 0; i < len/sizeof(int); i+=sizeof(int)) {
 		src[i] = i+1;
 	}
 
 	assert(0 == posix_memalign(&dst, linesize, len));
 
 	cpyfun(dst, src, len);
+//// make them fail
+//	src[len - 1] = 0x1;
+//	dst[len - 1] = 0x0;
 	assert(equal(src, src + len, (char*)dst));
 }
 
