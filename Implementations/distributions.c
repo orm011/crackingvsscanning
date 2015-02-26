@@ -26,8 +26,9 @@ randomDistribution(targetType *buffer, unsigned int size, targetType domain, int
 	const size_t linesize = 64;
 	int r= posix_memalign((void**)&rbuf, linesize, omp_get_max_threads()*linesize);
 	assert(r == 0);
+	const size_t stride = linesize/sizeof(unsigned int);
 
-	for (int i = 0; i < omp_get_max_threads(); i+=linesize) {
+	for (int i = 0; i < omp_get_max_threads(); i+=stride) {
 		rbuf[i] = ((unsigned)seed) + i;
 	}
 
@@ -35,7 +36,7 @@ randomDistribution(targetType *buffer, unsigned int size, targetType domain, int
 
 	#pragma omp parallel for
 	for (int i=0; i < q; i++)
-		buffer[i] = rand_r(rbuf+omp_get_thread_num()*(linesize/sizeof(unsigned int)));
+		buffer[i] = rand_r(rbuf+omp_get_thread_num()*stride);
 }
 
 void
