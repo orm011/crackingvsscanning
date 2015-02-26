@@ -22,11 +22,11 @@ MRqueueCreate(int nr_threads)
 	/* create a worker thread for each core as specified as system parameter (nr_threads) */
 	for (i = 0; i < nr_threads; i++) {
 		pthread_create(&tid, NULL, MRworker, NULL);
-		cpu_set_t pset;
-		CPU_ZERO(&pset);
-		CPU_SET(i, &pset);
-		int r = pthread_setaffinity_np(tid, sizeof(cpu_set_t), &pset);
-		assert(r == 0);
+//		cpu_set_t pset;
+//		CPU_ZERO(&pset);
+//		CPU_SET(i, &pset);
+//		int r = pthread_setaffinity_np(tid, sizeof(cpu_set_t), &pset);
+//		assert(r == 0);
 	}
 	pthread_mutex_unlock(&mrqlock);
 }
