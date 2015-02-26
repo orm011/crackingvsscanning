@@ -127,10 +127,21 @@ int main( int argc, char ** argv) {
   assert(sizemb > 0);
 
   size_t num = ((size_t)sizemb) * 1024 * 1024 / sizeof(char);
-  const char * src = (char*)malloc(num);
-  void * dst = nullptr;
 
-  assert(0 == posix_memalign(&dst, linesize, num)); // aligning is helpful for some impls.
+  const uint64_t* src = nullptr;
+  {
+	  uint64_t * tmp = (uint64_t*)malloc(num);
+	#pragma omp parallel for
+	  for (uint64_t i = 0; i < num/sizeof(uint64_t); ++i) {
+		  (tmp)[i] = i;
+	  }
+
+	  src = tmp;
+  }
+
+  uint64_t * dst = nullptr;
+
+  assert(0 == posix_memalign((void**)&dst, linesize, num)); // aligning is helpful for some impls.
 
   struct timeval before, after;
 
@@ -138,7 +149,7 @@ int main( int argc, char ** argv) {
 
   if (strcmp(algo,"memmove") == 0 ) {
 	fun = memmove;
-  } else if (strcmp(algo, "memcpy" ) == 0) {
+  } else if (strcmp(algo, "glibc" ) == 0) {
 	fun = memcpy;
   } else if (strcmp(algo, "builtin") == 0) {
 	fun = __builtin_memcpy;
@@ -152,17 +163,15 @@ int main( int argc, char ** argv) {
 	  assert(("invalid algo", 0));
   }
 
-  if (test) {
-	  memcpy_test(fun);
-  }
 
   gettimeofday(&before, NULL);
   fun(dst, src, num);
   gettimeofday(&after, NULL);
 
+//  ((unsigned char*)dst)[0] = 0xff; // test corruption
 #pragma omp parallel for
-  for (int i = 0; i < num; ++i) {
-	  ((char*)dst)[i] == ((char*)src)[i] || (abort(), true);
+  for (uint64_t i = 0; i < num/sizeof(uint64_t); ++i) {
+	  dst[i] == i || (abort(), true);
   }
 
   long diff = timediff(before, after);
