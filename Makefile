@@ -18,7 +18,7 @@ CFLAGS=$(OUTFLAGS) $(PAPI) -march=native -mtune=native -fopenmp -fno-omit-frame-
 COMMON=-DSEED=$(SEED) -DSKEW=$(SKEW)  Framework/main.c Implementations/distributions.c Implementations/create_values.c
 
 THREADS:=$(shell cat /proc/cpuinfo | grep processor | wc -l)
-LDFLAGS=-lm
+LDFLAGS=-lm -lpthread
 
 all: scanning cracking_mt_alt_2_vectorized
 

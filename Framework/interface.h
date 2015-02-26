@@ -1,6 +1,7 @@
 #ifndef _INTERFACE_H_
 #define _INTERFACE_H_
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>

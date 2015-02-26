@@ -1,5 +1,9 @@
 #include "../Framework/threadpool.h"
 
+#define _GNU_SOURCE
+#include <pthread.h>
+#include <sched.h>
+
 /* There is just a single queue for the workers */
 void
 MRqueueCreate(int nr_threads)
@@ -16,8 +20,14 @@ MRqueueCreate(int nr_threads)
 	}
 	mrqueue = NULL;
 	/* create a worker thread for each core as specified as system parameter (nr_threads) */
-	for (i = 0; i < nr_threads; i++)
+	for (i = 0; i < nr_threads; i++) {
 		pthread_create(&tid, NULL, MRworker, NULL);
+		cpu_set_t pset;
+		CPU_ZERO(&pset);
+		CPU_SET(i, &pset);
+		int r = pthread_setaffinity_np(tid, sizeof(cpu_set_t), &pset);
+		assert(r == 0);
+	}
 	pthread_mutex_unlock(&mrqlock);
 }
 
