@@ -2,7 +2,7 @@
 #include <omp.h>
 
 targetType* performCrack(targetType* buffer, targetType* payloadBuffer, size_t bufferSize, targetType pivot, const targetType pivot_P) {
-	targetType* result = malloc(sizeof(targetType)*bufferSize);
+	targetType* result = (targetType*)malloc(sizeof(targetType)*bufferSize);
 #pragma omp parallel
 	{
 		size_t i = (bufferSize*omp_get_thread_num())/omp_get_num_threads();

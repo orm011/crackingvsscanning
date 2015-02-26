@@ -22,21 +22,17 @@ void
 randomDistribution(targetType *buffer, unsigned int size, targetType domain, int seed)
 {
 	unsigned int p = 0, q = size;
-	unsigned int* rbuf = (unsigned int*) alloca(omp_get_max_threads()*sizeof(unsigned int));	
-	assert(size>0);
+	unsigned int* rbuf = (unsigned int*) alloca(omp_get_max_threads()*sizeof(unsigned int));
 
-	/* create values with random distribution */
-	if (seed != int_nil)
-		srand(seed);
-	if (domain == int_nil) {
-	#pragma omp parallel for
-		for (int i=0; i < q; i++)
-			buffer[i] = rand_r(rbuf+omp_get_thread_num());
-	} else {
-		#pragma omp parallel for
-		for (int i=0; i < q; i++)
-			buffer[i] = rand_r(rbuf+omp_get_thread_num())%domain;
+	for (int i = 0; i < omp_get_max_threads(); ++i) {
+		rbuf[i] = ((unsigned)seed) + i;
 	}
+
+	assert(size > 0);
+
+	#pragma omp parallel for
+	for (int i=0; i < q; i++)
+		buffer[i] = rand_r(rbuf+omp_get_thread_num());
 }
 
 void

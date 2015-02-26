@@ -6,6 +6,8 @@
 #endif
 #include <sys/time.h>
 #include <getopt.h>
+#include <stdint.h>
+#include <assert.h>
 
 long timediff(struct timeval before, struct timeval after){
 	return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
@@ -25,8 +27,48 @@ const int SHUFFLE_PAYLOAD = 1;
 const int SHUFFLE_PAYLOAD = 0;
 #endif
 
-int main(int argc, char* argv[]) {
+typedef struct features {
+	uint64_t sum;
+	uint64_t gepivot;
+	int partitioned;
+} features_t;
 
+features_t get_features(targetType *buf, size_t len, targetType pivot) {
+	features_t ans  = { 0, 0, 1 };
+
+	int pivot_crossed = 0;
+	assert(ans.partitioned);
+
+	for (size_t i = 0; i < len ; i++) {
+		pivot_crossed = pivot_crossed || buf[i] >= pivot;
+		ans.partitioned = ans.partitioned && !(buf[i] < pivot && pivot_crossed);
+		ans.gepivot += (buf[i] >= pivot); //update gepivot after.
+		ans.sum += buf[i];
+	}
+
+	return ans;
+}
+
+void sanity_check(){
+	unsigned int b[] = {0,3,1,4,5};
+	size_t elts = sizeof(b)/sizeof(unsigned int);
+
+	features_t t1 = get_features(b, elts, 0);
+	assert(t1.partitioned);
+	assert(t1.gepivot == 5);
+	assert(t1.sum == 13);
+
+	features_t t2 = get_features(b, elts, 2);
+	assert(!t2.partitioned);
+	assert(t2.gepivot == 3);
+
+	features_t t4 = get_features(b, elts, 4);
+	assert(t4.partitioned);
+	assert(t4.gepivot == 2);
+}
+
+int main(int argc, char* argv[]) {
+	sanity_check();
 	int pivotrel = -1;
 	long long int memorySize = -1;
 	const char * distribution = "randomD";
@@ -68,27 +110,16 @@ int main(int argc, char* argv[]) {
 	const size_t valueCount = memorySize * 1024 * 1024 / sizeof(targetType);
 	targetType* buffer;
 
-	int r = posix_memalign((void**)(&buffer), 32, valueCount * sizeof(targetType)); // TODO: fiddle with alignment? why?
+	int r = posix_memalign((void**)(&buffer), 32, valueCount * sizeof(targetType)); // TODO: fiddle with alignment
 	assert(r == 0);
 	payloadType* payloadBuffer = (SHUFFLE_PAYLOAD)?(payloadType*) malloc(valueCount * sizeof(payloadType)):NULL;
 	unsigned long long sum_before=0, sum_after=0, sum_prod_val_pos_before=0, sum_prod_val_pos_after=0;
 
+	targetType pivot = ((RAND_MAX/100) * pivotrel);
 
-
-	targetType pivot = (valueCount * pivotrel) / (100.0);
-
-	// NOTE: all values generated with randomD will lie between 0 and valueCount,
-	// potentially with some bias due to modulo operator.
 	create_values(distribution, buffer, valueCount, valueCount);
-		
-	for (size_t i = 0; i < valueCount; i++){
-		if(SHUFFLE_PAYLOAD)
-		{
-			payloadBuffer[i] = i;
-			sum_prod_val_pos_before += (buffer[i] * payloadBuffer[i]);
-		}
-		sum_before += buffer[i];   //used for result validation
-	}
+	features_t ftbefore = get_features(buffer, valueCount, pivot);
+
 
 #ifndef NO_PAPI
 	const char* events[] = EVENTS_TO_COUNT;
@@ -153,37 +184,20 @@ int main(int argc, char* argv[]) {
 	}
 #endif
 
-	{
-		size_t lastSmaller = 0, firstGreater = 0, everyFirstValueIsZero = 1;
-		for (size_t i = 0; i < valueCount; i++) {
-			if(buffer[i] < pivot)
-				lastSmaller = i;
-			else if(firstGreater == 0){
-				firstGreater = i;
-			}
-			if((i%16 == 0) && buffer[i] != 0){
-				everyFirstValueIsZero = 0;
-			}
-			sum_after += buffer[i];	
-			if(SHUFFLE_PAYLOAD)
-				sum_prod_val_pos_after += (buffer[i] * payloadBuffer[i]);
+	features_t ftafter = get_features(buffer, valueCount, pivot);
 
-		}
-		if (lastSmaller == valueCount - 1 && firstGreater == 0) {
-			/* PIVOT == 100% */
-			firstGreater = valueCount;
-		}
+	assert(ftafter.sum == ftbefore.sum);
+	assert(ftafter.gepivot == ftbefore.gepivot);
+
+	int32_t fraction = (int32_t)((((double)(ftafter.gepivot))/(valueCount) * 100) + 0.5) ;
 
 		printf("{\"experiment\": \"%s\", \"sizemb\": %lld, ", argv[0], memorySize);
 #ifndef NO_PAPI
 		for (int i = 0; i < sizeof(events)/sizeof(events[0]); i++)
 			printf("\"%s\": %lld, ", events[i], values[i]);			
 #endif
-		printf("\"wallclockmilli\": %ld, \"proper\": %d, \"proper_zeroed_out\": %zu, "
-				"\"sumcomp\": %d, \"sum_prod_comp\": %d, \"pivot\": %d, \"distr\": \"%s\"}\n", timediff(before, after)/1000,
-				(lastSmaller<firstGreater), everyFirstValueIsZero,(sum_after==sum_before),
-				(sum_prod_val_pos_before == sum_prod_val_pos_after), pivotrel, distribution);
-	}
+		printf("\"wallclockmilli\": %ld, \"partitioned\":%d \"ge_pivot\": %llu, \"ge_fraction\": %llu, \"sum\": %016x, \"pivot\": %d, \"distr\": \"%s\"}\n",
+				timediff(before, after)/1000, ftafter.partitioned, ftafter.gepivot, fraction, ftafter.sum, pivotrel, distribution);
 
 
 	free(buffer);
