@@ -131,9 +131,12 @@ int main( int argc, char ** argv) {
   const uint64_t* src = nullptr;
   {
 	  uint64_t * tmp = (uint64_t*)malloc(num);
-	#pragma omp parallel for
-	  for (uint64_t i = 0; i < num/sizeof(uint64_t); ++i) {
-		  (tmp)[i] = i;
+
+	  if (test) {
+		#pragma omp parallel for
+		  for (uint64_t i = 0; i < num/sizeof(uint64_t); ++i) {
+			  (tmp)[i] = i;
+		  }
 	  }
 
 	  src = tmp;
@@ -169,9 +172,11 @@ int main( int argc, char ** argv) {
   gettimeofday(&after, NULL);
 
 //  ((unsigned char*)dst)[0] = 0xff; // test corruption
-#pragma omp parallel for
-  for (uint64_t i = 0; i < num/sizeof(uint64_t); ++i) {
-	  dst[i] == i || (abort(), true);
+  if (test) {
+	#pragma omp parallel for
+	  for (uint64_t i = 0; i < num/sizeof(uint64_t); ++i) {
+		  dst[i] == i || (abort(), true);
+	  }
   }
 
   long diff = timediff(before, after);
