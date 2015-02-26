@@ -17,8 +17,9 @@ SKEW=10
 CFLAGS=$(OUTFLAGS) $(PAPI) -march=native -mtune=native -fopenmp -fno-omit-frame-pointer -g
 
 RONLY=1 #scanning (bandwidth.c) is read only, affects nothing else.
+AFFINITY=0
 
-COMMON=-DTIMING=$(TIMING) -DSEED=$(SEED) -DSKEW=$(SKEW)  Framework/main.c Implementations/distributions.c Implementations/create_values.c
+COMMON=-DAFFINITY=$(AFFINITY) -DTIMING=$(TIMING) -DSEED=$(SEED) -DSKEW=$(SKEW)  Framework/main.c Implementations/distributions.c Implementations/create_values.c
 
 THREADS:=$(shell cat /proc/cpuinfo | grep processor | wc -l)
 LDFLAGS=-lm -lpthread
