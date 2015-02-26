@@ -28,7 +28,7 @@ randomDistribution(targetType *buffer, unsigned int size, targetType domain, int
 	assert(r == 0);
 	const size_t stride = linesize/sizeof(unsigned int);
 
-	for (int i = 0; i < omp_get_max_threads(); i+=stride) {
+	for (int i = 0; i < stride*omp_get_max_threads(); i+=stride) {
 		rbuf[i] = ((unsigned)seed) + i;
 	}
 
