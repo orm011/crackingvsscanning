@@ -187,6 +187,9 @@ int main( int argc, char ** argv) {
   fun(dst, src, num);
   gettimeofday(&after, NULL);
 
+  long diff = timediff(before, after);
+  printf("{\"sizemb\": %ld, \"wallclockmilli\": %ld}\n", sizemb, diff/1000);
+
 //  ((unsigned char*)dst)[0] = 0xff; // test corruption
   if (test) {
 	#pragma omp parallel for
@@ -195,6 +198,4 @@ int main( int argc, char ** argv) {
 	  }
   }
 
-  long diff = timediff(before, after);
-  printf("{\"sizemb\": %ld, \"wallclockmilli\": %ld}\n", sizemb, diff/1000);
 }
