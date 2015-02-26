@@ -6,9 +6,15 @@ import sys
 def get_time_milli(result):
     return json.loads(result)['wallclockmilli']
 
-def bench(cmd, env = None, n=5):
+def check_partition(result):
+    assert(json.loads(result)['partitioned'] == 1)
+
+def bench(cmd, env = None, n=5, check=False):
     print cmd, env
-    results = [get_time_milli(subprocess.check_output(cmd, env=env)) for i in range(n)]
+    outputs = [subprocess.check_output(cmd, env=env) for i in range(n)]
+    results = [get_time_milli(o) for o in outputs]
+    if check:
+        [check_partition(o) for o in outputs] 
     return sorted(results)
 
 def median(arr):
@@ -17,7 +23,26 @@ def median(arr):
 def sort_by_median(dict):
     return sorted([ (median(res), k, res) for (k,res) in dict.items()])
 
-def affinity_exp(sizemb, pivot, reps):
+def framework_command(program, sizemb, pivot):
+    return  ['./bin/' + program, 
+             '--sizemb',
+             str(sizemb), 
+             '--pivot',
+             str(pivot)]
+
+def cracking_exp(sizemb, reps=5, pivot=50):
+    immutable = ['scanning', 'copying']
+    in_place = ['cracking_mt_alt_2_vectorized']
+    programs = immutable + in_place
+    
+    results = {}
+    for prg in programs:
+        cmd = framework_command(prg, sizemb, pivot)
+        results[str(cmd)] = bench(cmd, n=reps, check=(prg not in immutable))
+
+    return sort_by_median(results)
+
+def affinity_exp(sizemb, reps):
     assert (pivot > 0 and pivot < 100 )
     threadn = multiprocessing.cpu_count()
 
@@ -25,7 +50,7 @@ def affinity_exp(sizemb, pivot, reps):
            '--sizemb',
            str(sizemb), 
            '--pivot',
-           str(pivot)]
+           str(50)]
 
     env ={'OMP_NUM_THREADS':str(threadn)}
     res1 = bench(cmd, env)
@@ -48,6 +73,8 @@ if sys.argv[1] == 'affinity':
     print_by_line(affinity_exp(int(sys.argv[2]), 1, 5))
 elif sys.argv[1] == 'memcpy':
     print_by_line(memcpy_exp(int(sys.argv[2])))
+elif sys.argv[1] == 'cracking':
+    print_by_line(cracking_exp(int(sys.argv[2])))
 else:
     assert false
 
