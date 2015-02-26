@@ -36,10 +36,13 @@ def framework_command(program, sizemb, pivot):
              '--pivot',
              str(pivot)]
 
-def cracking_exp(sizemb, reps=5, pivot=50):
+def cracking_exp(sizemb, reps=5, only=False, pivot=50):
     immutable = ['scanning', 'copying']
     in_place = ['cracking_mt_alt_2_vectorized']
-    programs = immutable + in_place
+    if not only:
+        programs = immutable + in_place
+    else:
+        programs = in_place
     
     results = {}
     for prg in programs:
@@ -79,8 +82,10 @@ if sys.argv[1] == 'affinity':
     print_by_line(affinity_exp(int(sys.argv[2]), 1, 5))
 elif sys.argv[1] == 'memcpy':
     print_by_line(memcpy_exp(int(sys.argv[2])))
-elif sys.argv[1] == 'cracking':
+elif sys.argv[1] == 'compare':
     print_by_line(cracking_exp(int(sys.argv[2])))
+elif sys.argv[1] == 'cracking':
+    print_by_line(cracking_exp(int(sys.argv[2]), reps=10, only=True))
 else:
     assert false
 
