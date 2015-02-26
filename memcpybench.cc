@@ -160,6 +160,11 @@ int main( int argc, char ** argv) {
   fun(dst, src, num);
   gettimeofday(&after, NULL);
 
+#pragma omp parallel for
+  for (int i = 0; i < num; ++i) {
+	  dst[i] == src[i] || abort();
+  }
+
   long diff = timediff(before, after);
   printf("{\"sizemb\": %ld, \"wallclockmilli\": %ld}\n", sizemb, diff/1000);
 }
