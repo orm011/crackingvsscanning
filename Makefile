@@ -8,6 +8,7 @@ PAPI=-DNO_PAPI
 #-floop-parallelize-all <- needs config'd gcc
 
 VECTORSIZE=1024
+TIMING=0 #for extended gettimeof day profiling
 
 #possible values: randomD,uniformD,skewedD,holgerD,sortedD,revsortedD,almostsortedD
 DISTRIBUTION=randomD
@@ -17,12 +18,12 @@ CFLAGS=$(OUTFLAGS) $(PAPI) -march=native -mtune=native -fopenmp -fno-omit-frame-
 
 RONLY=1 #scanning (bandwidth.c) is read only, affects nothing else.
 
-COMMON=-DSEED=$(SEED) -DSKEW=$(SKEW)  Framework/main.c Implementations/distributions.c Implementations/create_values.c
+COMMON=-DTIMING=$(TIMING) -DSEED=$(SEED) -DSKEW=$(SKEW)  Framework/main.c Implementations/distributions.c Implementations/create_values.c
 
 THREADS:=$(shell cat /proc/cpuinfo | grep processor | wc -l)
 LDFLAGS=-lm -lpthread
 
-all: scanning cracking_mt_alt_2_vectorized
+all: scanning copying cracking_mt_alt_2_vectorized
 
 naive: outputdir
 	gcc  $(CFLAGS) -std=gnu99 -o bin/naive_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/naive.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)

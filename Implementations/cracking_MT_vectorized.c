@@ -272,9 +272,11 @@ cracking_vectorized_x (
 	}
 #endif
 	*pos_r = lowerWriteCursor;
-//	gettimeofday(&tbc, NULL);
-//	long int diff = timediff(tac, tbc);
-//	printf("ac -> bc: %07ld\n", diff);
+#if TIMING == 1
+	gettimeofday(&tbc, NULL);
+	long int diff = timediff(tac, tbc);
+	fprintf(stderr, "ac -> bc: %07ld\n", diff);
+#endif
 }
 /* crackThread for multi-threaded crack code */
 void
@@ -580,11 +582,13 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 	long int diffcd = timediff(tvc, tvd);
 	long int diffst = timediff(tvs, tvt);
 
-	printf(	"a to b: %07ld\n"
+#if TIMING == 1
+	fprintf(stderr,	"a to b: %07ld\n"
 			"b to c: %07ld\n"
 			"c to d: %07ld\n"
 			"s to t: %07ld\n",
 			diffab, diffbc, diffcd, diffst);
+#endif
 
 	free(temp);
 #ifdef DO_PAYLOAD_SHUFFLE
