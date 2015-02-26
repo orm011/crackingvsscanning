@@ -505,7 +505,7 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 	/*The rest of the values if the elements are not divided by the vector size*/
 	if (remaining_elements > 0)
 	{
-//		abort(); // just to be aware when this code does actually run
+		abort(); // just to be aware when this code does actually run
 		size_t qualifying_elements = 0;
 		size_t lowerCursor = last_vector_pos + 1, upperCursor = last_vector_pos + remaining_elements;
 		size_t *tmp = malloc(remaining_elements*sizeof(targetType));
