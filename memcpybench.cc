@@ -162,7 +162,7 @@ int main( int argc, char ** argv) {
 
 #pragma omp parallel for
   for (int i = 0; i < num; ++i) {
-	  dst[i] == src[i] || abort();
+	  ((char*)dst)[i] == ((char*)src)[i] || (abort(), true);
   }
 
   long diff = timediff(before, after);
