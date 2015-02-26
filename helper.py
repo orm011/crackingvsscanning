@@ -6,6 +6,9 @@ import sys
 def get_time_milli(result):
     return json.loads(result)['wallclockmilli']
 
+def get_sum(result):
+    return json.loads(result)['sum']
+
 def check_partition(result):
     assert(json.loads(result)['partitioned'] == 1)
 
@@ -15,6 +18,9 @@ def bench(cmd, env = None, n=5, check=False):
     results = [get_time_milli(o) for o in outputs]
     if check:
         [check_partition(o) for o in outputs] 
+        sums = [ get_sum(o) for o in outputs]
+        assert(len(set(sums)) == 1) #only one workload => only one sum
+        
     return sorted(results)
 
 def median(arr):
