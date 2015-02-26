@@ -272,9 +272,9 @@ cracking_vectorized_x (
 	}
 #endif
 	*pos_r = lowerWriteCursor;
-	gettimeofday(&tbc, NULL);
-	long int diff = timediff(tac, tbc);
-	printf("ac -> bc: %07ld\n", diff);
+//	gettimeofday(&tbc, NULL);
+//	long int diff = timediff(tac, tbc);
+//	printf("ac -> bc: %07ld\n", diff);
 }
 /* crackThread for multi-threaded crack code */
 void
