@@ -15,6 +15,8 @@ SEED=100003
 SKEW=10
 CFLAGS=$(OUTFLAGS) $(PAPI) -march=native -mtune=native -fopenmp -fno-omit-frame-pointer -g
 
+RONLY=1 #scanning (bandwidth.c) is read only, affects nothing else.
+
 COMMON=-DSEED=$(SEED) -DSKEW=$(SKEW)  Framework/main.c Implementations/distributions.c Implementations/create_values.c
 
 THREADS:=$(shell cat /proc/cpuinfo | grep processor | wc -l)
@@ -24,9 +26,6 @@ all: scanning cracking_mt_alt_2_vectorized
 
 naive: outputdir
 	gcc  $(CFLAGS) -std=gnu99 -o bin/naive_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/naive.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
-
-bandwidth: outputdir
-	gcc  $(CFLAGS) -fopenmp -std=gnu99 -o bin/bandwidth_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
 vectorizedVanilla: outputdir
 	gcc  $(CFLAGS) -std=gnu99 -o bin/vectorized$(VECTORSIZE)Ints_$(DISTRIBUTION) -DVECTORSIZE=$(VECTORSIZE) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/vectorized.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
@@ -70,14 +69,17 @@ clean:
 asm/vectorized.asm: asmdir
 	gcc -S $(LDFLAGS) $(CFLAGS) -std=gnu99 -o asm/vectorized_$(DISTRIBUTION).asm -DVECTORSIZE=4096 -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/vectorizedWithAVXMemcpyAndSIMDCracking.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
-asm/bandwidth.asm: asmdir
+asm/scanning.asm: asmdir
 	gcc -S $(LDFLAGS) $(CFLAGS) -std=gnu99 -o asm/bandwidth_$(DISTRIBUTION).asm -DVECTORSIZE=4096 -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
 cracking: outputdir
 	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/Cracking_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT.c Implementations/threadpool.c Framework/main.c Implementations/original.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
 scanning: outputdir
-	gcc $(CFLAGS) -fopenmp -std=gnu99 -o bin/scanning -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c $(COMMON) $(LDFLAGS) 
+	gcc $(CFLAGS) -fopenmp -std=gnu99 -o bin/scanning -DRONLY=1 -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c $(COMMON) $(LDFLAGS) 
+
+copying: outputdir
+	gcc $(CFLAGS) -fopenmp -std=gnu99 -o bin/copying -DRONLY=0 -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c $(COMMON) $(LDFLAGS) 
 
 sorting: outputdir
 	g++ $(LDFLAGS) $(CFLAGS) -fopenmp -o bin/sorting_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/sort.c Framework/main.c  Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)

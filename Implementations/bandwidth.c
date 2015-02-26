@@ -10,11 +10,15 @@ targetType* performCrack(targetType* buffer, targetType* payloadBuffer, size_t b
 		size_t outI = (bufferSize*omp_get_thread_num())/omp_get_num_threads();
 		for (; i < end; i+=64){
 			for (int j = 0; j < 64; j++){
+#if RONLY == 1
+				result[outI] += buffer[i+j] < pivot;
+#elif RONLY == 0
 				result[outI] = buffer[i+j];
-				outI += (buffer[i+j] < pivot);
+				++outI;
+#endif
 			}
 		}
-	} 
+	}
 
 	return result;
 }
