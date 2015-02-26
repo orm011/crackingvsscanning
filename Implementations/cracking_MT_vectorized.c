@@ -1,6 +1,7 @@
 #include "../Framework/cracking_MT_vectorized.h"
 #include <sys/time.h>
 //#include "common.h"
+#include <stdint.h>
 
 static long timediff(struct timeval before, struct timeval after){
 	return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
@@ -12,6 +13,23 @@ typedef struct {
 } cursorDeltas;
 
 const size_t ELEMENTS_PER_VECTOR = VECTORSIZE/sizeof(targetType);
+
+
+static inline void * naive_memcpy(void * dst, const void * src, size_t num) {
+	typedef uint64_t t;
+
+	const t *srcfoo = (const t *)(src);
+	t * dstfoo = (t *)(dst);
+	const t *end = (t *)(((char*)dst) + num);
+
+
+	for (; dstfoo < end; dstfoo+=1, srcfoo+=1) {
+		*dstfoo  = *srcfoo;
+	}
+
+	return dst;
+}
+
 
 static inline cursorDeltas performCrackOnVectors(const targetType* restrict input, targetType* restrict leftOutput, targetType* restrict rightOutput, const targetType pivot
 ){
@@ -137,8 +155,8 @@ cracking_vectorized_x (
 	//assert(pos_r);
 
 	// copy from two potentially separate places into one location (predication?)
-	__builtin_memcpy(localBuffer, buffer+first_left, sizeof(targetType)*2*ELEMENTS_PER_VECTOR);
-	__builtin_memcpy(localBuffer+2*ELEMENTS_PER_VECTOR, buffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(targetType)*ELEMENTS_PER_VECTOR);
+	naive_memcpy(localBuffer, buffer+first_left, sizeof(targetType)*2*ELEMENTS_PER_VECTOR);
+	naive_memcpy(localBuffer+2*ELEMENTS_PER_VECTOR, buffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(targetType)*ELEMENTS_PER_VECTOR);
 
 	lowerReadCursor += 2*ELEMENTS_PER_VECTOR;
 	upperReadCursor -= ELEMENTS_PER_VECTOR;
@@ -203,12 +221,12 @@ cracking_vectorized_x (
 					skip_right = first_right - last_left;
 				}
 				if(lowerReadCursor-lowerWriteCursor-skip_left < upperWriteCursor-(upperReadCursor-1)-skip_right){
-					__builtin_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+lowerReadCursor, sizeof(targetType)*ELEMENTS_PER_VECTOR);
+					naive_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+lowerReadCursor, sizeof(targetType)*ELEMENTS_PER_VECTOR);
 					lowerReadCursor+=ELEMENTS_PER_VECTOR;
 					if (lowerReadCursor == last_left + 1)
 						lowerReadCursor = first_right;
 				} else {
-					__builtin_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(targetType)*ELEMENTS_PER_VECTOR);
+					naive_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(targetType)*ELEMENTS_PER_VECTOR);
 					upperReadCursor-=ELEMENTS_PER_VECTOR;
 					if (upperReadCursor == first_right)
 						upperReadCursor = last_left + 1;
@@ -234,10 +252,10 @@ cracking_vectorized_x (
 		upperWriteCursor += deltas.right;
 		if (vectorR < vectorCount) {
 			if(lowerReadCursor-lowerWriteCursor < upperWriteCursor-(upperReadCursor-1)){
-				__builtin_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+lowerReadCursor, sizeof(targetType)*ELEMENTS_PER_VECTOR);
+				naive_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+lowerReadCursor, sizeof(targetType)*ELEMENTS_PER_VECTOR);
 				lowerReadCursor+=ELEMENTS_PER_VECTOR;
 			} else {
-				__builtin_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(targetType)*ELEMENTS_PER_VECTOR);
+				naive_memcpy(localBuffer+(vectorI%3)*ELEMENTS_PER_VECTOR, buffer+upperReadCursor-ELEMENTS_PER_VECTOR, sizeof(targetType)*ELEMENTS_PER_VECTOR);
 				upperReadCursor-=ELEMENTS_PER_VECTOR;
 			}
 			vectorR++;
@@ -532,9 +550,9 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 
 			if(qualifying_elements <= (last_vector_pos - f + 1))
 			{
-				__builtin_memcpy(tmp, b + f, sizeof(targetType)*qualifying_elements);
-				__builtin_memcpy(b + f, b + last_vector_pos + 1, sizeof(targetType)*qualifying_elements);
-				__builtin_memcpy(b + last_vector_pos + 1, tmp, sizeof(targetType)*qualifying_elements);
+				naive_memcpy(tmp, b + f, sizeof(targetType)*qualifying_elements);
+				naive_memcpy(b + f, b + last_vector_pos + 1, sizeof(targetType)*qualifying_elements);
+				naive_memcpy(b + last_vector_pos + 1, tmp, sizeof(targetType)*qualifying_elements);
 #ifdef DO_PAYLOAD_SHUFFLE
 				__builtin_memcpy(tmp_payload, payloadBuffer + f, sizeof(targetType)*qualifying_elements);
 				__builtin_memcpy(payloadBuffer + f, payloadBuffer + last_vector_pos + 1, sizeof(targetType)*qualifying_elements);
@@ -544,9 +562,9 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 			else
 			{
 				size_t copied_elements = last_vector_pos - f + 1;
-				__builtin_memcpy(tmp, b + f, sizeof(targetType)*copied_elements);
-				__builtin_memcpy(b + f, b + last_vector_pos + 1, sizeof(targetType)*copied_elements);
-				__builtin_memcpy(b + last_vector_pos + 1, tmp, sizeof(targetType)*copied_elements);
+				naive_memcpy(tmp, b + f, sizeof(targetType)*copied_elements);
+				naive_memcpy(b + f, b + last_vector_pos + 1, sizeof(targetType)*copied_elements);
+				naive_memcpy(b + last_vector_pos + 1, tmp, sizeof(targetType)*copied_elements);
 #ifdef DO_PAYLOAD_SHUFFLE
 				__builtin_memcpy(tmp_payload, payloadBuffer + f, sizeof(targetType)*copied_elements);
 				__builtin_memcpy(payloadBuffer + f, payloadBuffer + last_vector_pos + 1, sizeof(targetType)*copied_elements);
