@@ -32,6 +32,20 @@ void * naive_memcpy(void * dst, const void * src, size_t num) {
 	return dst;
 }
 
+void * naive_read(void * dst, const void * src, size_t num) {
+	typedef uint64_t t;
+
+	auto srcfoo = reinterpret_cast<const t * >(src);
+	auto dstfoo = reinterpret_cast<t *>(dst);
+	const auto end = reinterpret_cast<t *>(((char*)dst) + num);
+
+	for (; srcfoo < end; srcfoo+=1) {
+		*dstfoo  += *srcfoo;
+	}
+
+	return dst;
+}
+
 
 void * pf_memcpy(void * dst, const void * src, size_t num) {
 	typedef uint64_t t;
@@ -158,6 +172,8 @@ int main( int argc, char ** argv) {
 	fun = __builtin_memcpy;
   } else if (strcmp(algo, "naive") == 0 ) {
 	 fun = naive_memcpy;
+  } else if (strcmp(algo, "read") == 0) {
+	  fun = naive_read; //will fail test
   } else if (strcmp(algo, "mmx") == 0) {
 	  fun = nt_memcpy;
   } else if (strcmp(algo, "pf") == 0) {
