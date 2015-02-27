@@ -345,7 +345,8 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 	SystemCounterState before_sstate = m->getSystemCounterState();
 
 	if (e != PCM::Success) {
-		fprintf(stderr, "program() failed with error %d", e);
+		fprintf(stderr, "PCM::program() failed with error %d\n", e);
+		abort();
 	}
 #endif
 
