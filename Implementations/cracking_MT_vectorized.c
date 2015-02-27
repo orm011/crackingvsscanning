@@ -342,7 +342,7 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 	PCM * m = PCM::getInstance();
 
 	PCM::ErrorCode e =  m->program (PCM::DEFAULT_EVENTS, NULL);
-	SystemCounterState before_sstate = getSystemCounterState();
+	SystemCounterState before_sstate = m->getSystemCounterState();
 
 	if (e != PCM::Success) {
 		fprintf(stderr, "program() failed with error %d", e);
@@ -452,6 +452,16 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 
 	gettimeofday(&tvc, NULL);
 
+#if PCMON==1
+	SystemCounterState after_sstate = m->getSystemCounterState();
+
+	double l2 = getL2CacheHitRatio(before_sstate, after_sstate);
+	double l3 = getL3CacheHitRatio(before_sstate, after_sstate);
+	uint64_t r = getBytesReadFromMC(before_sstate, after_sstate);
+	uint64_t w = getBytesWrittenToMC(before_sstate, after_sstate);
+	printf("l2 hit %lf. l3 hit %lf. r %lu. w %lu\n", l2, l3, r, w);
+
+#endif
 	/* "meta-crack": move "wrong" parts of slices to correct final location */
 	if (alt == 2) {
 		/* Alt. 2: treat each half-slice as individual slice */
