@@ -176,11 +176,6 @@ cracking_vectorized_x (
 
 	size_t vectorI = 0, vectorR = 3;
 
-#if PCMON == 1
-	PCM * m = PCM::getInstance();
-	assert(m->program() == PCM::Success);
-#endif
-
 	if (ml && mr && last_left + 1 < first_right) {
 		gettimeofday(&forstart, NULL);
 		/* we have two disjoint half-pieces */
@@ -321,7 +316,7 @@ cracking_vectorized_x (
 	long int diff = timediff(tac, tbc);
 	long int diffFor1 = timediff(forstart, forend);
 	long int diffFor2 = timediff(forstart2, forend2);
-	fprintf(stderr, "total: %07ld. firstfor %07ld, secfor %07ld. ls %p le %p rs %p re %p \n", diff, diffFor1, diffFor2, ls,le,rs,re);
+	fprintf(stderr, "total: %07ld, firstfor: %07ld, secfor: %07ld, size: %llu, rend %p \n", diff, diffFor1, diffFor2, (le - ls + re - rs), re);
 #endif
 }
 /* crackThread for multi-threaded crack code */
@@ -342,6 +337,16 @@ void
 cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* payloadBuffer, targetType pivot,
 		size_t *pos, int nthreads, int alt, const targetType pivot_P)
 {
+
+#if PCMON == 1
+	PCM * m = PCM::getInstance();
+
+	PCM::ErrorCode e = m->program();
+	if (e != PCM::Success) {
+		fprintf(stderr, "program() failed with error %d", e);
+	}
+#endif
+
 	struct timeval tva;
 	struct timeval tvb;
 	struct timeval tvc;
@@ -617,23 +622,14 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 
 	gettimeofday(&tvd, NULL);
 
-
-	struct timeval tvs;
-	struct timeval tvt;
-	gettimeofday(&tvs, NULL);
-	gettimeofday(&tvt, NULL);
-
-	long int diffab = timediff(tva, tvb);
 	long int diffbc = timediff(tvb, tvc);
 	long int diffcd = timediff(tvc, tvd);
-	long int diffst = timediff(tvs, tvt);
 
 #if TIMING == 1
-	fprintf(stderr,	"a to b: %07ld\n"
+	fprintf(stderr,
 			"b to c: %07ld\n"
 			"c to d: %07ld\n"
-			"s to t: %07ld\n",
-			diffab, diffbc, diffcd, diffst);
+			diffbc, diffcd);
 #endif
 
 	free(temp);
