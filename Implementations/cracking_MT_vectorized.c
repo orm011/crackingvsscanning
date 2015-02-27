@@ -452,7 +452,7 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 
 	gettimeofday(&tvb, NULL);
 
-	#pragma omp for schedule(dynamic, 1)
+	#pragma omp parallel for schedule(dynamic, 1)
 	for (int i = 0; i < nthreads; ++i) {
 		cracking_MT_vectorized_crackThread(&c_Thread_arg[i]);
 	}
