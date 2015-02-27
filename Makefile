@@ -32,7 +32,7 @@ PCM=/home/orm/IntelPerformanceCounterMonitorV2.8
 all: scanning copying cracking_mt_alt_2_vectorized
 
 cracking_mt_alt_2_vectorized: outputdir
-	g++ -fpermissive -I $(PCM) -pthread $(CFLAGS) -std=c++11 -o bin/cracking_mt_alt_2_vectorized  Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c Implementations/cracking_mt_alt_2_vectorized.c  $(COMMON) $(LDFLAGS) -L$ $(PCM)/intelpcm.so/ -lintelpcm
+	g++ -fpermissive -I $(PCM) -pthread $(CFLAGS) -std=c++0x -o bin/cracking_mt_alt_2_vectorized  Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c Implementations/cracking_mt_alt_2_vectorized.c  $(COMMON) $(LDFLAGS) -L$ $(PCM)/intelpcm.so/ -lintelpcm
 
 naive: outputdir
 	gcc  $(CFLAGS) -std=gnu99 -o bin/naive_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/naive.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
