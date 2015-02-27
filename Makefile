@@ -14,12 +14,13 @@ TIMING=0 #for extended gettimeof day profiling
 DISTRIBUTION=randomD
 SEED=100003
 SKEW=10
+CFLAGSNOPEN=$(OUTFLAGS) $(PAPI) -march=native -mtune=native -fno-omit-frame-pointer -g
 CFLAGS=$(OUTFLAGS) $(PAPI) -march=native -mtune=native -fopenmp -fno-omit-frame-pointer -g
 
 RONLY=1 #scanning (bandwidth.c) is read only, affects nothing else.
 AFFINITY=0
 
-TASKS_PER_THREAD=16
+TASKS_PER_THREAD=4
 
 PCMON=0
 
@@ -33,7 +34,7 @@ LDFLAGS=-lm -lpthread
 HELPER=-pthread -fpermissive $(CFLAGS) $(COMMOND) $(LDFLAGS)
 PCM=/home/orm/IntelPerformanceCounterMonitorV2.8/
 
-all: scanning copying cracking_mt_alt_2_vectorized
+all: scanning cracking_mt_alt_2_vectorized
 
 cracking_mt_alt_2_vectorized: outputdir
 ifeq ($(PCMON),1)
@@ -91,7 +92,11 @@ cracking: outputdir
 	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/Cracking_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT.c Implementations/threadpool.c Framework/main.c Implementations/original.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
 scanning: outputdir
-	gcc $(CFLAGS) -fopenmp -std=gnu99 -o bin/scanning -DRONLY=1 -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c $(COMMON) $(LDFLAGS) 
+ifeq ($(PCMON),1)
+	g++ -fpermissive -I $(PCM)  $(CFLAGS) -std=c++0x -DRONLY=1 -o ./bin/scanning Implementations/bandwidth.c  $(COMMON) $(LDFLAGS) -L$ $(PCM)/intelpcm.so/ -lintelpcm
+else
+	gcc $(CFLAGS) -fopenmp -std=gnu99 -o bin/scanning -DRONLY=1 Implementations/bandwidth.c $(COMMON) $(LDFLAGS) 
+endif
 
 copying: outputdir
 	gcc $(CFLAGS) -fopenmp -std=gnu99 -o bin/copying -DRONLY=0 -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c $(COMMON) $(LDFLAGS) 

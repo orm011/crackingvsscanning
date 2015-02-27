@@ -440,13 +440,7 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 #if PCMON == 1
 	PCM * m = PCM::getInstance();
 
-	PCM::ErrorCode e =  m->program (PCM::DEFAULT_EVENTS, NULL);
 	SystemCounterState before_sstate = m->getSystemCounterState();
-
-	if (e != PCM::Success) {
-		fprintf(stderr, "PCM::program() failed with error %d\n", e);
-		abort();
-	}
 #endif
 
 

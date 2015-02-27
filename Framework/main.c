@@ -9,6 +9,11 @@
 #include <stdint.h>
 #include <assert.h>
 
+#if PCMON == 1
+#include <cpucounters.h>
+#endif
+
+
 long timediff(struct timeval before, struct timeval after){
 	return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
 }
@@ -171,11 +176,36 @@ int main(int argc, char* argv[]) {
 
 #endif
 	struct timeval before, after;
+
+#if PCMON == 1
+	PCM * m = PCM::getInstance();
+
+	PCM::ErrorCode e =  m->program (PCM::DEFAULT_EVENTS, NULL);
+	SystemCounterState before_sstate = m->getSystemCounterState();
+
+	if (e != PCM::Success) {
+		fprintf(stderr, "PCM::program() failed with error %d\n", e);
+		abort();
+	}
+#endif
+
 	gettimeofday(&before, NULL);
 
 	performCrack(buffer, payloadBuffer, valueCount, pivot, pivotrel);
 
 	gettimeofday(&after, NULL);
+
+#if PCMON==1
+	SystemCounterState after_sstate = m->getSystemCounterState();
+
+	double l2 = getL2CacheHitRatio(before_sstate, after_sstate);
+	double l3 = getL3CacheHitRatio(before_sstate, after_sstate);
+	uint64_t reads = getBytesReadFromMC(before_sstate, after_sstate);
+	uint64_t writes = getBytesWrittenToMC(before_sstate, after_sstate);
+	printf("l2 hit %lf. l3 hit %lf. r %lu. w %lu\n", l2, l3, reads, writes)																																																																	;
+
+#endif
+
 
 #ifndef NO_PAPI
 	if (PAPI_read(EventSet, values) != PAPI_OK){
