@@ -341,7 +341,9 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 #if PCMON == 1
 	PCM * m = PCM::getInstance();
 
-	PCM::ErrorCode e = m->program();
+	PCM::ErrorCode e =  m->program (PCM::DEFAULT_EVENTS, NULL);
+	SystemCounterState before_sstate = getSystemCounterState();
+
 	if (e != PCM::Success) {
 		fprintf(stderr, "program() failed with error %d", e);
 	}
@@ -351,7 +353,6 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 	struct timeval tvb;
 	struct timeval tvc;
 	struct timeval tvd;
-
 
 	gettimeofday(&tva, NULL);
 
@@ -626,10 +627,7 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 	long int diffcd = timediff(tvc, tvd);
 
 #if TIMING == 1
-	fprintf(stderr,
-			"b to c: %07ld\n"
-			"c to d: %07ld\n"
-			diffbc, diffcd);
+	fprintf(stderr, "b to c: %07ld\nc to d: %07ld\n", diffbc, diffcd);
 #endif
 
 	free(temp);
