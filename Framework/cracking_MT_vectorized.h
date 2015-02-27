@@ -5,7 +5,7 @@
 #include "threadpool.h"
 
 typedef void (*IdleFuncPtr)(c_Thread_t *);
-IdleFuncPtr IdleFunction;
+//IdleFuncPtr IdleFunction;
 void cracking_vectorized (targetType* __restrict__ const buffer, payloadType* payloadBuffer, const targetType pivot, const size_t first, const size_t last, const size_t ml, const size_t mr, size_t *pos_r, const targetType pivot_P);
 void cracking_vectorized_x (targetType* __restrict__ const buffer, payloadType* payloadBuffer, const targetType pivot, const size_t first, const size_t last, const size_t ml, const size_t mr, size_t *pos_r, const targetType pivot_P);
 void cracking_MT_vectorized_crackThread ( c_Thread_t *arg_p );
