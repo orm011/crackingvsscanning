@@ -2,6 +2,7 @@
 #include <sys/time.h>
 //#include "common.h"
 #include <stdint.h>
+#include <cpucounters.h>
 
 static long timediff(struct timeval before, struct timeval after){
 	return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
@@ -31,7 +32,7 @@ static inline void * naive_memcpy(void * dst, const void * src, size_t num) {
 }
 
 
-static inline cursorDeltas performCrackOnVectors(const targetType* restrict input, targetType* restrict leftOutput, targetType* restrict rightOutput, const targetType pivot
+static inline cursorDeltas performCrackOnVectors(const targetType* __restrict__ input, targetType* __restrict__ leftOutput, targetType* __restrict__ rightOutput, const targetType pivot
 ){
 	ssize_t
 	rightOutI = 0,
@@ -47,7 +48,7 @@ static inline cursorDeltas performCrackOnVectors(const targetType* restrict inpu
 	return (cursorDeltas){.left = leftOutI, .right = rightOutI};
 }
 
-static inline cursorDeltas performCrackOnVectors_left(const targetType* restrict input, targetType* restrict leftOutput, targetType* restrict rightOutput, const targetType pivot
+static inline cursorDeltas performCrackOnVectors_left(const targetType* __restrict__ input, targetType* __restrict__ leftOutput, targetType* __restrict__ rightOutput, const targetType pivot
 		, ssize_t max, size_t skip
 ){
 	ssize_t
@@ -65,7 +66,7 @@ static inline cursorDeltas performCrackOnVectors_left(const targetType* restrict
 	return (cursorDeltas){.left = leftOutI, .right = rightOutI};
 }
 
-static inline cursorDeltas performCrackOnVectors_right(const targetType* restrict input, targetType* restrict leftOutput, targetType* restrict rightOutput, const targetType pivot
+static inline cursorDeltas performCrackOnVectors_right(const targetType* __restrict__ input, targetType* __restrict__ leftOutput, targetType* __restrict__ rightOutput, const targetType pivot
 		, ssize_t min, size_t skip
 ){
 	ssize_t
@@ -83,7 +84,7 @@ static inline cursorDeltas performCrackOnVectors_right(const targetType* restric
 	return (cursorDeltas){.left = leftOutI, .right = rightOutI};
 }
 
-static inline cursorDeltas performCrackOnVectors_left_right(const targetType* restrict input, targetType* restrict leftOutput, targetType* restrict rightOutput, targetType pivot
+static inline cursorDeltas performCrackOnVectors_left_right(const targetType* __restrict__ input, targetType* __restrict__ leftOutput, targetType* __restrict__ rightOutput, targetType pivot
 		, ssize_t max, ssize_t min, size_t skip
 ){
 	ssize_t
@@ -106,7 +107,7 @@ static inline cursorDeltas performCrackOnVectors_left_right(const targetType* re
 void
 cracking_vectorized (
 		/* input */
-		targetType* restrict const attribute,      /* attribute (array) */
+		targetType* __restrict__ const attribute,      /* attribute (array) */
 		payloadType* payloadBuffer,
 		targetType pivot, /* pivot value for attribute*/
 		size_t first,    /* first position of to-be-cracked piece */
@@ -128,7 +129,7 @@ cracking_vectorized (
 void
 cracking_vectorized_x (
 		/* input */
-		targetType* restrict const buffer,      /* attribute (array) */
+		targetType* __restrict__ const buffer,      /* attribute (array) */
 		payloadType* payloadBuffer,
 		const targetType pivot, /* pivot value for attribute*/
 		size_t first_left,  /* first position of to-be-cracked piece */
@@ -140,8 +141,17 @@ cracking_vectorized_x (
 ) {
 	struct timeval tac;
 	struct timeval tbc;
+	struct timeval forstart = {0,0};
+	struct timeval forend = {0,0};
 
 	gettimeofday(&tac, NULL);
+	const size_t ls = first_left;
+	const size_t le = first_left + ml;
+	const size_t rs = last_right +1 - mr;
+	const size_t re = last_right+1;
+
+	const size_t mlc = ml;
+	const size_t mrc = mr;
 
 	size_t last_left = first_left + ml - 1, first_right = last_right + 1 - mr;
 	assert(!(ml && mr && last_left + 1 < first_right) || (ml%(2*ELEMENTS_PER_VECTOR) == 0 && mr%(2*ELEMENTS_PER_VECTOR) == 0));
@@ -161,9 +171,15 @@ cracking_vectorized_x (
 	lowerReadCursor += 2*ELEMENTS_PER_VECTOR;
 	upperReadCursor -= ELEMENTS_PER_VECTOR;
 
+
 	size_t vectorI = 0, vectorR = 3;
 
+	PCM * m = PCM::getInstance();
+	assert(m->program() == PCM::Success);
+
 	if (ml && mr && last_left + 1 < first_right) {
+		gettimeofday(&forstart, NULL);
+		PCM * m = PCM::getInstance();
 		/* we have two disjoint half-pieces */
 		for (; vectorI < vectorCount; vectorI++)	{
 			assert (lowerWriteCursor <= upperWriteCursor);
@@ -234,6 +250,7 @@ cracking_vectorized_x (
 				vectorR++;
 			}
 		}
+		gettimeofday(&forend, NULL);
 
 	} else {
 		ml = mr = 0;
@@ -241,6 +258,10 @@ cracking_vectorized_x (
 		last_left = last_right;
 	}
 
+	struct timeval forstart2;
+	struct timeval forend2;
+
+	gettimeofday(&forstart2, NULL);
 	for (; vectorI < vectorCount; vectorI++)	{
 		/* we only have one consecutive (half-) piece (remaining) */
 		assert (lowerWriteCursor <= upperWriteCursor);
@@ -261,6 +282,8 @@ cracking_vectorized_x (
 			vectorR++;
 		}
 	}
+	gettimeofday(&forend2, NULL);
+
 	assert (vectorR == vectorCount);
 	//assert(lowerReadCursor == upperReadCursor || (lowerReadCursor == first_right && upperReadCursor == last_left + 1));
 
@@ -293,7 +316,9 @@ cracking_vectorized_x (
 #if TIMING == 1
 	gettimeofday(&tbc, NULL);
 	long int diff = timediff(tac, tbc);
-	fprintf(stderr, "ac -> bc: %07ld\n", diff);
+	long int diffFor1 = timediff(forstart, forend);
+	long int diffFor2 = timediff(forstart2, forend2);
+	fprintf(stderr, "total: %07ld. firstfor %07ld, secfor %07ld. ls %p le %p rs %p re %p \n", diff, diffFor1, diffFor2, ls,le,rs,re);
 #endif
 }
 /* crackThread for multi-threaded crack code */
