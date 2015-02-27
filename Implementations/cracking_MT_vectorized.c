@@ -338,17 +338,6 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 		size_t *pos, int nthreads, int alt, const targetType pivot_P)
 {
 
-#if PCMON == 1
-	PCM * m = PCM::getInstance();
-
-	PCM::ErrorCode e =  m->program (PCM::DEFAULT_EVENTS, NULL);
-	SystemCounterState before_sstate = m->getSystemCounterState();
-
-	if (e != PCM::Success) {
-		fprintf(stderr, "PCM::program() failed with error %d\n", e);
-		abort();
-	}
-#endif
 
 	struct timeval tva;
 	struct timeval tvb;
@@ -368,12 +357,14 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 	targetType *temp;
 	size_t remaining_elements = 0; /*elements that do not "fit" in vectors*/
 
-	//TODO: note the base case sizes.
-	/* adjust nthreads */
-	if ((size_t) nthreads > n / 10) {
-		/* more threads / smaller slices does not make sense */
-		nthreads = (int) (n / 10) + 1;
-	}
+	int oldnhreads = nthreads; //the real number of threads.
+	nthreads = nthreads * TASKS_PER_THREAD; //hack to decouple # of tasks from # of threads
+//	//TODO: note the base case sizes.
+//	/* adjust nthreads */
+//	if ((size_t) nthreads > n / 10) {
+//		/* more threads / smaller slices does not make sense */
+//		nthreads = (int) (n / 10) + 1;
+//	}
 	// at 1024 bytes -> 256 elts
 	mm = (n / nthreads);
 
@@ -446,10 +437,25 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 		}
 	}
 
+#if PCMON == 1
+	PCM * m = PCM::getInstance();
+
+	PCM::ErrorCode e =  m->program (PCM::DEFAULT_EVENTS, NULL);
+	SystemCounterState before_sstate = m->getSystemCounterState();
+
+	if (e != PCM::Success) {
+		fprintf(stderr, "PCM::program() failed with error %d\n", e);
+		abort();
+	}
+#endif
+
 
 	gettimeofday(&tvb, NULL);
 
-	MRschedule(nthreads, c_Thread_arg, cracking_MT_vectorized_crackThread);
+	#pragma omp for schedule(dynamic, 1)
+	for (int i = 0; i < nthreads; ++i) {
+		cracking_MT_vectorized_crackThread(&c_Thread_arg[i]);
+	}
 
 	gettimeofday(&tvc, NULL);
 

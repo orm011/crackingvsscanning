@@ -19,11 +19,13 @@ CFLAGS=$(OUTFLAGS) $(PAPI) -march=native -mtune=native -fopenmp -fno-omit-frame-
 RONLY=1 #scanning (bandwidth.c) is read only, affects nothing else.
 AFFINITY=0
 
+TASKS_PER_THREAD=16
+
 PCMON=0
 
-COMMOND=-DAFFINITY=$(AFFINITY) -DPCMON=$(PCMON) -DTIMING=$(TIMING) -DSEED=$(SEED) -DSKEW=$(SKEW) -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION)
+COMMOND=-DAFFINITY=$(AFFINITY) -DPCMON=$(PCMON) -DTIMING=$(TIMING) -DSEED=$(SEED) -DSKEW=$(SKEW) -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION) -DTASKS_PER_THREAD=$(TASKS_PER_THREAD)
 COMMONF=Framework/main.c Implementations/distributions.c Implementations/create_values.c
-COMMON=$(COMMOND) $(COMMONF)
+COMMON=$(COMMOND) $(COMMONF) 
 
 THREADS:=$(shell cat /proc/cpuinfo | grep processor | wc -l)
 LDFLAGS=-lm -lpthread
