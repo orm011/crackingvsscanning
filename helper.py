@@ -2,6 +2,7 @@ import subprocess
 import multiprocessing
 import json
 import sys
+import ast
 
 def get_time_milli(result):
     return json.loads(result)['wallclockmilli']
@@ -36,7 +37,7 @@ def framework_command(program, sizemb, pivot):
              '--pivot',
              str(pivot)]
 
-def cracking_exp(sizemb, reps=5, only=False, pivot=50):
+def cracking_exp(sizemb, reps=5, only=False, pivot=50, env={}):
     immutable = ['scanning', 'copying']
     in_place = ['cracking_mt_alt_2_vectorized']
     if not only:
@@ -47,8 +48,8 @@ def cracking_exp(sizemb, reps=5, only=False, pivot=50):
     results = {}
     for prg in programs:
         cmd = framework_command(prg, sizemb, pivot)
-        results[str(cmd)] = bench(cmd, n=reps, check=(prg not in immutable))
-
+        results[str(cmd)] = bench(cmd, env=env, 
+                                  n=reps, check=(prg not in immutable))
     return sort_by_median(results)
 
 def affinity_exp(sizemb, reps):
@@ -85,7 +86,7 @@ elif sys.argv[1] == 'memcpy':
 elif sys.argv[1] == 'compare':
     print_by_line(cracking_exp(int(sys.argv[2])))
 elif sys.argv[1] == 'cracking':
-    print_by_line(cracking_exp(int(sys.argv[2]), reps=10, only=True))
+    print_by_line(cracking_exp(int(sys.argv[2]), reps=10, only=True, env=ast.literal_eval(sys.argv[3])))
 else:
     assert false
 
