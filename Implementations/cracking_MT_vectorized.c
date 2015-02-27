@@ -45,7 +45,7 @@ static inline cursorDeltas performCrackOnVectors(const targetType* __restrict__ 
 		leftOutput[leftOutI] = input[inI];
 		leftOutI += isLessThan;
 	}
-	return (cursorDeltas){.left = leftOutI, .right = rightOutI};
+	return (cursorDeltas){leftOutI, rightOutI};
 }
 
 static inline cursorDeltas performCrackOnVectors_left(const targetType* __restrict__ input, targetType* __restrict__ leftOutput, targetType* __restrict__ rightOutput, const targetType pivot
@@ -63,7 +63,7 @@ static inline cursorDeltas performCrackOnVectors_left(const targetType* __restri
 		leftOutI += isLessThan;
 		leftOutI += (leftOutI == max) * skip;
 	}
-	return (cursorDeltas){.left = leftOutI, .right = rightOutI};
+	return (cursorDeltas){leftOutI, rightOutI};
 }
 
 static inline cursorDeltas performCrackOnVectors_right(const targetType* __restrict__ input, targetType* __restrict__ leftOutput, targetType* __restrict__ rightOutput, const targetType pivot
@@ -81,7 +81,7 @@ static inline cursorDeltas performCrackOnVectors_right(const targetType* __restr
 		leftOutput[leftOutI] = input[inI];
 		leftOutI += isLessThan;
 	}
-	return (cursorDeltas){.left = leftOutI, .right = rightOutI};
+	return (cursorDeltas){leftOutI, rightOutI};
 }
 
 static inline cursorDeltas performCrackOnVectors_left_right(const targetType* __restrict__ input, targetType* __restrict__ leftOutput, targetType* __restrict__ rightOutput, targetType pivot
@@ -100,7 +100,7 @@ static inline cursorDeltas performCrackOnVectors_left_right(const targetType* __
 		leftOutI += isLessThan;
 		leftOutI += (leftOutI == max) * skip;
 	}
-	return (cursorDeltas){.left = leftOutI, .right = rightOutI};
+	return (cursorDeltas){leftOutI, rightOutI};
 }
 
 /* revised single-threaded crack code (used in multicore alternatives)*/
