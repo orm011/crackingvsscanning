@@ -19,7 +19,9 @@ CFLAGS=$(OUTFLAGS) $(PAPI) -march=native -mtune=native -fopenmp -fno-omit-frame-
 RONLY=1 #scanning (bandwidth.c) is read only, affects nothing else.
 AFFINITY=0
 
-COMMOND=-DAFFINITY=$(AFFINITY) -DTIMING=$(TIMING) -DSEED=$(SEED) -DSKEW=$(SKEW) -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION)
+PCMON=0
+
+COMMOND=-DAFFINITY=$(AFFINITY) -DPCMON=$(PCMON) -DTIMING=$(TIMING) -DSEED=$(SEED) -DSKEW=$(SKEW) -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION)
 COMMONF=Framework/main.c Implementations/distributions.c Implementations/create_values.c
 COMMON=$(COMMOND) $(COMMONF)
 
@@ -29,10 +31,13 @@ LDFLAGS=-lm -lpthread
 HELPER=-pthread -fpermissive $(CFLAGS) $(COMMOND) $(LDFLAGS)
 PCM=/home/orm/IntelPerformanceCounterMonitorV2.8
 
+
+
 all: scanning copying cracking_mt_alt_2_vectorized
 
 cracking_mt_alt_2_vectorized: outputdir
-	g++ -fpermissive -I $(PCM) -pthread $(CFLAGS) -std=c++0x -o bin/cracking_mt_alt_2_vectorized  Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c Implementations/cracking_mt_alt_2_vectorized.c  $(COMMON) $(LDFLAGS) -L$ $(PCM)/intelpcm.so/ -lintelpcm
+		#g++ -fpermissive -I $(PCM) -pthread $(CFLAGS) -std=c++0x -o bin/cracking_mt_alt_2_vectorized  Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c Implementations/cracking_mt_alt_2_vectorized.c  $(COMMON) $(LDFLAGS) -L$ $(PCM)/intelpcm.so/ -lintelpcm
+		g++ -fpermissive -pthread $(CFLAGS) --std=c++0x -o bin/cracking_mt_alt_2_vectorized  Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c Implementations/cracking_mt_alt_2_vectorized.c  $(COMMON) $(LDFLAGS)		
 
 naive: outputdir
 	gcc  $(CFLAGS) -std=gnu99 -o bin/naive_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/naive.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)

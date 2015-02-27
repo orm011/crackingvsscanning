@@ -2,7 +2,9 @@
 #include <sys/time.h>
 //#include "common.h"
 #include <stdint.h>
+#if PCMON == 1
 #include <cpucounters.h>
+#endif
 
 static long timediff(struct timeval before, struct timeval after){
 	return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
@@ -174,12 +176,13 @@ cracking_vectorized_x (
 
 	size_t vectorI = 0, vectorR = 3;
 
+#if PCMON == 1
 	PCM * m = PCM::getInstance();
 	assert(m->program() == PCM::Success);
+#endif
 
 	if (ml && mr && last_left + 1 < first_right) {
 		gettimeofday(&forstart, NULL);
-		PCM * m = PCM::getInstance();
 		/* we have two disjoint half-pieces */
 		for (; vectorI < vectorCount; vectorI++)	{
 			assert (lowerWriteCursor <= upperWriteCursor);
