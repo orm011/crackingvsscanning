@@ -8,8 +8,9 @@ targetType* performCrack(targetType* buffer, targetType* payloadBuffer, size_t b
 		size_t i = (bufferSize*omp_get_thread_num())/omp_get_num_threads();
 		size_t end = (bufferSize*(omp_get_thread_num()+1))/omp_get_num_threads();
 		size_t outI = (bufferSize*omp_get_thread_num())/omp_get_num_threads();
-		for (; i < end; i++){
-			result[outI] += buffer[i] < pivot;
+		for (; i < end; i+=64){
+			for (int j = 0; j < 64; j++)
+				result[outI] += buffer[i + j] < pivot;
 		}
 	}
 
