@@ -1,8 +1,16 @@
+#! /usr/bin/python
+
 import subprocess
 import multiprocessing
 import json
 import sys
 import ast
+import re
+
+
+def print_by_line(lst):
+    for l in lst:
+        print l
 
 def get_time_milli(result):
     return json.loads(result)['wallclockmilli']
@@ -21,8 +29,7 @@ def bench(cmd, env = None, n=5, check=False):
         [check_partition(o) for o in outputs] 
         sums = [ get_sum(o) for o in outputs]
         assert(len(set(sums)) == 1) #only one workload => only one sum
-        
-    return sorted(results)
+    return results
 
 def median(arr):
     return sorted(arr)[len(arr)/2]
@@ -37,6 +44,13 @@ def framework_command(program, sizemb, pivot):
              '--pivot',
              str(pivot)]
 
+def runreps(cmdstr, reps):
+    cmd = ["bash", "-c", cmdstr]
+    outputs = [subprocess.check_output(cmd) for i in range(reps)]
+    results = [get_time_milli(o) for o in outputs]
+    return { cmdstr:(outputs, sorted(results)) }
+
+ 
 def cracking_exp(sizemb, reps=5, only=False, pivot=50, env={}):
     immutable = ['scanning', 'copying']
     in_place = ['cracking_mt_alt_2_vectorized']
@@ -70,13 +84,9 @@ def affinity_exp(sizemb, reps):
 
     return sort_by_median({'no_affinity':res1, 'affinity':res2})
 
-def print_by_line(lst):
-    for l in lst:
-        print l
-
 def memcpy_exp(sizemb):
     cmd_base  = ['./bin/memcpybench', '-s', str(sizemb), '-a']
-    vars = ['memcpy', 'naive', 'nt', 'builtin']
+    vars = ['glibc', 'naive']
     return sort_by_median(dict([ (v, bench(cmd_base + [v])) for v in vars ]))
 
 if sys.argv[1] == 'affinity':
@@ -86,7 +96,15 @@ elif sys.argv[1] == 'memcpy':
 elif sys.argv[1] == 'compare':
     print_by_line(cracking_exp(int(sys.argv[2])))
 elif sys.argv[1] == 'cracking':
-    print_by_line(cracking_exp(int(sys.argv[2]), reps=10, only=True, env=ast.literal_eval(sys.argv[3])))
+    print_by_line(cracking_exp(int(sys.argv[2]), reps=20, only=True))
+elif sys.argv[1] == 'bench':
+    reps = 5
+    if len(sys.argv) >= 4:
+        reps = sys.argv[3]
+
+    outputs = runreps(sys.argv[2], reps)
+    for (outs, times) in outputs.values():
+        print_by_line(outs)
+        print median(times), times
 else:
     assert false
-
