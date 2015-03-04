@@ -1,47 +1,57 @@
 # EVENTS_TO_COUNT={"CYCLE_ACTIVITY:STALLS_L2_PENDING", "CYCLE_ACTIVITY:STALLS_L1D_PENDING", "UNHALTED_CORE_CYCLES"}
-EVENTS_TO_COUNT={"UNHALTED_CORE_CYCLES"}
 
-OUTFLAGS=-O3 -ftree-vectorize -funroll-loops -fsched-spec-load -falign-loops -DEVENTS_TO_COUNT='$(EVENTS_TO_COUNT)'
-PAPI=-DNO_PAPI
+NPROCS:=$(shell cat /proc/cpuinfo | grep processor | wc -l)
+THREADS=$(NPROCS)
+
+CC=g++
+CCFLAGS=-g -std=c++0x -fpermissive -ftree-vectorize -funroll-loops -fsched-spec-load -falign-loops -fopenmp -fno-omit-frame-pointer -march=native -mtune=native
+
+ifdef DEBUG
+CCFLAGS+=-O1
+else
+CCFLAGS+=-O3
+endif
 
 #-faggressive-loop-optimizations <- not available in istc*
 #-floop-parallelize-all <- needs config'd gcc
 
 VECTORSIZE=1024
 TIMING=0 #for extended gettimeof day profiling
-
-#possible values: randomD,uniformD,skewedD,holgerD,sortedD,revsortedD,almostsortedD
+TASKS_PER_THREAD=1
 DISTRIBUTION=randomD
 SEED=100003
 SKEW=10
-CFLAGSNOPEN=$(OUTFLAGS) $(PAPI) -march=native -mtune=native -fno-omit-frame-pointer -g
-CFLAGS=$(OUTFLAGS) $(PAPI) -march=native -mtune=native -fopenmp -fno-omit-frame-pointer -g
 
-RONLY=1 #scanning (bandwidth.c) is read only, affects nothing else.
 AFFINITY=0
-
-TASKS_PER_THREAD=4
-
 PCMON=0
 
-COMMOND=-DAFFINITY=$(AFFINITY) -DPCMON=$(PCMON) -DTIMING=$(TIMING) -DSEED=$(SEED) -DSKEW=$(SKEW) -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION) -DTASKS_PER_THREAD=$(TASKS_PER_THREAD)
-COMMONF=Framework/main.c Implementations/distributions.c Implementations/create_values.c
-COMMON=$(COMMOND) $(COMMONF) 
+COMMONDEFS=-DAFFINITY=$(AFFINITY) -DNO_PAPI -DPCMON=$(PCMON) -DTIMING=$(TIMING) -DSEED=$(SEED) -DSKEW=$(SKEW) -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION) -DTASKS_PER_THREAD=$(TASKS_PER_THREAD)
 
-THREADS:=$(shell cat /proc/cpuinfo | grep processor | wc -l)
-LDFLAGS=-lm -lpthread
+COMMONFILES=Framework/main.c Implementations/distributions.c Implementations/create_values.c
+COMMON=$(COMMONDEFS) $(COMMONFILES) 
 
-HELPER=-pthread -fpermissive $(CFLAGS) $(COMMOND) $(LDFLAGS)
 PCM=/home/orm/IntelPerformanceCounterMonitorV2.8/
 
-all: scanning cracking_mt_alt_2_vectorized
-
-cracking_mt_alt_2_vectorized: outputdir
-ifeq ($(PCMON),1)
-	g++ -fpermissive -I $(PCM) -pthread $(CFLAGS) -std=c++0x -o bin/cracking_mt_alt_2_vectorized  Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c Implementations/cracking_mt_alt_2_vectorized.c  $(COMMON) $(LDFLAGS) -L$ $(PCM)/intelpcm.so/ -lintelpcm
-else
-	g++ -fpermissive -pthread $(CFLAGS) --std=c++0x -o bin/cracking_mt_alt_2_vectorized  Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c Implementations/cracking_mt_alt_2_vectorized.c  $(COMMON) $(LDFLAGS)		
+IFLAGS=
+ifeq ($(PCMON), 1)
+IFLAGS+=-I $(PCM)
 endif
+
+LDFLAGS=-lm -lpthread
+ifeq ($(PCMON), 1)
+LDFLAGS+=-L $(PCM)/intelpcm.so/ -lintelpcm
+endif
+
+all: scanning cracking copying
+
+cracking: outputdir
+	$(CC) $(CCFLAGS) $(IFLAGS) -o bin/cracking  Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c Implementations/cracking_mt_alt_2_vectorized.c  $(COMMON) $(LDFLAGS) 
+
+scanning: outputdir
+	$(CC) $(CCFLAGS) $(IFLAGS) -o ./bin/scanning Implementations/scanning.c $(COMMON) $(LDFLAGS)
+
+copying: outputdir
+	$(CC) $(CCFLAGS) $(IFLAGS) -o ./bin/copying Implementations/copying.cc $(COMMON) $(LDFLAGS) 
 
 naive: outputdir
 	gcc  $(CFLAGS) -std=gnu99 -o bin/naive_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/naive.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
@@ -88,18 +98,9 @@ asm/vectorized.asm: asmdir
 asm/scanning.asm: asmdir
 	gcc -S $(LDFLAGS) $(CFLAGS) -std=gnu99 -o asm/bandwidth_$(DISTRIBUTION).asm -DVECTORSIZE=4096 -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
-cracking: outputdir
+cracking_old: outputdir
 	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/Cracking_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT.c Implementations/threadpool.c Framework/main.c Implementations/original.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
-scanning: outputdir
-ifeq ($(PCMON),1)
-	g++ -fpermissive -I $(PCM)  $(CFLAGS) -std=c++0x -DRONLY=1 -o ./bin/scanning Implementations/bandwidth.c  $(COMMON) $(LDFLAGS) -L$ $(PCM)/intelpcm.so/ -lintelpcm
-else
-	gcc $(CFLAGS) -fopenmp -std=gnu99 -o bin/scanning -DRONLY=1 Implementations/bandwidth.c $(COMMON) $(LDFLAGS) 
-endif
-
-copying: outputdir
-	gcc $(CFLAGS) -fopenmp -std=gnu99 -o bin/copying -DRONLY=0 -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/bandwidth.c $(COMMON) $(LDFLAGS) 
 
 sorting: outputdir
 	g++ $(LDFLAGS) $(CFLAGS) -fopenmp -o bin/sorting_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/sort.c Framework/main.c  Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
