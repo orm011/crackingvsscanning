@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
 				"\"partitioned\":%d, "
 				"\"ge_pivot\": %lu, "
 				"\"lt_fraction\": %d, "
-				"\"sum\": \"%016ux\", "
+				"\"sum\": \"%016ulx\", "
 				"\"pivot\": %d, "
 				"\"distr\": \"%s\"}\n",
 				timediff(before, after)/1000,
