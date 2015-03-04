@@ -226,8 +226,20 @@ int main(int argc, char* argv[]) {
 		for (int i = 0; i < sizeof(events)/sizeof(events[0]); i++)
 			printf("\"%s\": %lld, ", events[i], values[i]);			
 #endif
-		printf("\"wallclockmilli\": %ld, \"partitioned\":%d, \"ge_pivot\": %llu, \"lt_fraction\": %llu, \"sum\": \"%016x\", \"pivot\": %d, \"distr\": \"%s\"}\n",
-				timediff(before, after)/1000, ftafter.partitioned, valueCount - ftafter.gepivot, fraction, ftafter.sum, pivotrel, distribution);
+		printf("\"wallclockmilli\": %ld, "
+				"\"partitioned\":%d, "
+				"\"ge_pivot\": %llu, "
+				"\"lt_fraction\": %ld, "
+				"\"sum\": \"%016x\", "
+				"\"pivot\": %d, "
+				"\"distr\": \"%s\"}\n",
+				timediff(before, after)/1000,
+				ftafter.partitioned,
+				valueCount - ftafter.gepivot,
+				fraction,
+				ftafter.sum,
+				pivotrel,
+				distribution);
 
 
 	free(buffer);
