@@ -44,9 +44,15 @@ def framework_command(program, sizemb, pivot):
              '--pivot',
              str(pivot)]
 
-def runreps(cmdstr, reps):
+def runreps(cmdstr, reps, verbose=True):
     cmd = ["bash", "-c", cmdstr]
-    outputs = [subprocess.check_output(cmd) for i in range(reps)]
+    outputs = []
+    for i in range(reps):
+        o = subprocess.check_output(cmd)
+        outputs += [o]
+        if verbose:
+            print o
+
     results = [get_time_milli(o) for o in outputs]
     return { cmdstr:(outputs, sorted(results)) }
 
@@ -102,9 +108,8 @@ elif sys.argv[1] == 'bench':
     if len(sys.argv) >= 4:
         reps = sys.argv[3]
 
-    outputs = runreps(sys.argv[2], reps)
+    outputs = runreps(sys.argv[2], reps, verbose=True)
     for (outs, times) in outputs.values():
-        print_by_line(outs)
         print median(times), times
 else:
     assert false
