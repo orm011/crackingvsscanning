@@ -359,13 +359,6 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 
 	int oldnhreads = nthreads; //the real number of threads.
 	nthreads = nthreads * TASKS_PER_THREAD; //hack to decouple # of tasks from # of threads
-//	//TODO: note the base case sizes.
-//	/* adjust nthreads */
-//	if ((size_t) nthreads > n / 10) {
-//		/* more threads / smaller slices does not make sense */
-//		nthreads = (int) (n / 10) + 1;
-//	}
-	// at 1024 bytes -> 256 elts
 	mm = (n / nthreads);
 
 	remaining_elements = (mm % (2 * ELEMENTS_PER_VECTOR)) * nthreads;
@@ -398,8 +391,8 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 		exit(EXIT_FAILURE);
 	}
 #endif
-	temp = malloc(mm * sizeof(targetType));
-	c_Thread_arg  = malloc(alt * nthreads * sizeof(c_Thread_t));
+	temp = (targetType*)malloc(mm * sizeof(targetType));
+	c_Thread_arg  = (c_Thread_t*)malloc(alt * nthreads * sizeof(c_Thread_t));
 	if (!temp || !c_Thread_arg) {
 		if (temp)
 			free(temp);
@@ -514,12 +507,6 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 				memcpy(temp, &b[pi], st);
 				memcpy(&b[pi], &b[pj], st);
 				memcpy(&b[pj], temp, st);
-#ifdef DO_PAYLOAD_SHUFFLE
-				const size_t stp = sk * sizeof(payloadType);
-				memcpy(tempPayload, &payloadBuffer[pi], stp);
-				memcpy(&payloadBuffer[pi], &payloadBuffer[pj], stp);
-				memcpy(&payloadBuffer[pj], tempPayload, stp);
-#endif
 				c_Thread_arg[i].pos_r += sk;
 				c_Thread_arg[j].pos_r -= sk;
 
@@ -553,8 +540,8 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 		abort(); // just to be aware when this code does actually run
 		size_t qualifying_elements = 0;
 		size_t lowerCursor = last_vector_pos + 1, upperCursor = last_vector_pos + remaining_elements;
-		size_t *tmp = malloc(remaining_elements*sizeof(targetType));
-		size_t *tmp_payload = malloc(remaining_elements*sizeof(payloadType));
+		size_t *tmp = (size_t*)malloc(remaining_elements*sizeof(targetType));
+		size_t *tmp_payload = (size_t*)malloc(remaining_elements*sizeof(payloadType));
 
 		while (lowerCursor < upperCursor)
 		{
@@ -571,11 +558,6 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 				targetType tmp = b[lowerCursor];
 				b[lowerCursor] = b[upperCursor];
 				b[upperCursor] = tmp;
-#ifdef DO_PAYLOAD_SHUFFLE
-				payloadType tmpPayload = payloadBuffer[lowerCursor];
-				payloadBuffer[lowerCursor] = payloadBuffer[upperCursor];
-				payloadBuffer[upperCursor] = tmpPayload;
-#endif
 				lowerCursor++;
 				upperCursor--;
 				qualifying_elements++;
@@ -598,11 +580,6 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 				naive_memcpy(tmp, b + f, sizeof(targetType)*qualifying_elements);
 				naive_memcpy(b + f, b + last_vector_pos + 1, sizeof(targetType)*qualifying_elements);
 				naive_memcpy(b + last_vector_pos + 1, tmp, sizeof(targetType)*qualifying_elements);
-#ifdef DO_PAYLOAD_SHUFFLE
-				__builtin_memcpy(tmp_payload, payloadBuffer + f, sizeof(targetType)*qualifying_elements);
-				__builtin_memcpy(payloadBuffer + f, payloadBuffer + last_vector_pos + 1, sizeof(targetType)*qualifying_elements);
-				__builtin_memcpy(payloadBuffer + last_vector_pos + 1, tmp_payload, sizeof(targetType)*qualifying_elements);
-#endif
 			}
 			else
 			{
@@ -610,11 +587,6 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 				naive_memcpy(tmp, b + f, sizeof(targetType)*copied_elements);
 				naive_memcpy(b + f, b + last_vector_pos + 1, sizeof(targetType)*copied_elements);
 				naive_memcpy(b + last_vector_pos + 1, tmp, sizeof(targetType)*copied_elements);
-#ifdef DO_PAYLOAD_SHUFFLE
-				__builtin_memcpy(tmp_payload, payloadBuffer + f, sizeof(targetType)*copied_elements);
-				__builtin_memcpy(payloadBuffer + f, payloadBuffer + last_vector_pos + 1, sizeof(targetType)*copied_elements);
-				__builtin_memcpy(payloadBuffer + last_vector_pos + 1, tmp_payload, sizeof(targetType)*copied_elements);
-#endif
 			}
 			f += qualifying_elements;
 		}
@@ -622,9 +594,6 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 			f += remaining_elements;
 
 		free(tmp);
-#ifdef DO_PAYLOAD_SHUFFLE
-		free(tmpPayload);
-#endif
 	}
 
 	assert(f != BUN_NONE);
@@ -642,8 +611,5 @@ cracking_MT_vectorized (size_t first, size_t last, targetType *b, payloadType* p
 #endif
 
 	free(temp);
-#ifdef DO_PAYLOAD_SHUFFLE
-	free(tempPayload);
-#endif
 	free(c_Thread_arg);
 }

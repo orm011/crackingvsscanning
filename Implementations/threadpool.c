@@ -92,7 +92,7 @@ MRschedule(int taskcnt, c_Thread_t *arg, void (*cmd) ( c_Thread_t *p))
 {
 	int i;
 	sem_t sema;
-	MRtask *task = malloc(taskcnt * sizeof(MRtask));
+	MRtask *task = (MRtask*)malloc(taskcnt * sizeof(MRtask));
 
 	if (mrqueue == 0)
 		MRqueueCreate(taskcnt);
