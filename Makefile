@@ -34,7 +34,8 @@ COMMONDEFS=-DAFFINITY=$(AFFINITY) -DNO_PAPI -DPCMON=$(PCMON) -DTIMING=$(TIMING) 
 COMMONFILES=Framework/main.c Implementations/distributions.c Implementations/create_values.c
 COMMON=$(COMMONDEFS) $(COMMONFILES) 
 
-PCM=/home/orm/IntelPerformanceCounterMonitorV2.8/
+HOME:=$(shell echo ~)
+PCM=$(HOME)/IntelPerformanceCounterMonitorV2.8/
 
 IFLAGS=
 ifeq ($(PCMON), 1)
@@ -43,7 +44,7 @@ endif
 
 LDFLAGS=-lm -lpthread
 ifeq ($(PCMON), 1)
-LDFLAGS+=-L $(PCM)/intelpcm.so/ -lintelpcm
+LDFLAGS+=-L $(PCM)/intelpcm.so/ -lintelpcm -Wl,-rpath $(PCM)/intelpcm.so/
 endif
 
 all: scanning cracking copying
