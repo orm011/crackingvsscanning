@@ -228,9 +228,9 @@ int main(int argc, char* argv[]) {
 #endif
 		printf("\"wallclockmilli\": %ld, "
 				"\"partitioned\":%d, "
-				"\"ge_pivot\": %llu, "
-				"\"lt_fraction\": %ld, "
-				"\"sum\": \"%016x\", "
+				"\"ge_pivot\": %lu, "
+				"\"lt_fraction\": %d, "
+				"\"sum\": \"%016ux\", "
 				"\"pivot\": %d, "
 				"\"distr\": \"%s\"}\n",
 				timediff(before, after)/1000,
