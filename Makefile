@@ -4,7 +4,11 @@ NPROCS:=$(shell cat /proc/cpuinfo | grep processor | wc -l)
 THREADS=$(NPROCS)
 
 CC=g++
-CCFLAGS=-g -std=c++0x -fpermissive -ftree-vectorize -funroll-loops -fsched-spec-load -falign-loops -fopenmp -fno-omit-frame-pointer -march=native -mtune=native
+CCFLAGS=-g -std=c++0x -fpermissive -ftree-vectorize -funroll-loops -fsched-spec-load -falign-loops -fno-omit-frame-pointer -march=native -mtune=native
+
+ifndef NOMP
+CCFLAGS+=-fopenmp
+endif
 
 ifdef DEBUG
 CCFLAGS+=-O1
@@ -44,14 +48,29 @@ endif
 
 all: scanning cracking copying
 
+outputdir:
+	mkdir -v bin 2>/dev/null || true
+
+asmdir:
+	mkdir -v asm 2>/dev/null || true
+
+clean:
+	rm -rf bin
+
 cracking: outputdir
 	$(CC) $(CCFLAGS) $(IFLAGS) -o bin/cracking  Implementations/cracking_MT_vectorized.c  Implementations/threadpool.c Implementations/cracking_mt_alt_2_vectorized.c  $(COMMON) $(LDFLAGS) 
 
 scanning: outputdir
 	$(CC) $(CCFLAGS) $(IFLAGS) -o ./bin/scanning Implementations/scanning.c $(COMMON) $(LDFLAGS)
 
+scanning.asm: asmdir
+	$(CC) -S $(CCFLAGS) $(IFLAGS) -o ./asm/scanning.asm Implementations/scanning.c 
+
 copying: outputdir
 	$(CC) $(CCFLAGS) $(IFLAGS) -o ./bin/copying Implementations/copying.cc $(COMMON) $(LDFLAGS) 
+
+copying.asm: asmdir
+	$(CC) -S $(CCFLAGS) $(IFLAGS) -o ./asm/copying.asm Implementations/copying.cc
 
 naive: outputdir
 	gcc  $(CFLAGS) -std=gnu99 -o bin/naive_$(DISTRIBUTION) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/naive.c Framework/main.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
@@ -83,14 +102,6 @@ cracking_mt_alt_1_notmerge: outputdir
 cracking_mt_alt_2_notmerge: outputdir
 	gcc -pthread $(LDFLAGS) $(CFLAGS) -std=gnu99 -o bin/cracking_mt_alt_2_notmerge_threads_$(THREADS) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/cracking_MT_notmerge.c  Implementations/threadpool.c   Framework/main.c Implementations/cracking_mt_alt_2_notmerge.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
 
-outputdir:
-	mkdir -v bin 2>/dev/null || true
-
-asmdir:
-	mkdir -v asm 2>/dev/null || true
-
-clean:
-	rm -rf bin
 
 asm/vectorized.asm: asmdir
 	gcc -S $(LDFLAGS) $(CFLAGS) -std=gnu99 -o asm/vectorized_$(DISTRIBUTION).asm -DVECTORSIZE=4096 -DDISTRIBUTION=$(DISTRIBUTION) -DSEED=$(SEED) -DSKEW=$(SKEW) Implementations/vectorizedWithAVXMemcpyAndSIMDCracking.c Implementations/distributions.c Implementations/create_values.c $(LDFLAGS)
