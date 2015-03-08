@@ -1,21 +1,7 @@
 #include "../Framework/interface.h"
 #include <alloca.h>
 //#include <parallel/algorithm>
-
-#ifndef _OPENMP
-static int omp_get_thread_num(){
-	return 0;
-}
-static int omp_get_num_threads(){
-	return 1;
-}
-static int omp_get_max_threads(){
-	return 1;
-}
-#else
 #include <omp.h>
-#endif
-
 
 
 void
@@ -34,9 +20,16 @@ randomDistribution(targetType *buffer, unsigned int size, targetType domain, int
 
 	assert(size > 0);
 
-	#pragma omp parallel for
-	for (int i=0; i < q; i++)
-		buffer[i] = rand_r(rbuf+omp_get_thread_num()*stride);
+	#pragma omp parallel
+	{
+		size_t tasksize = size/omp_get_num_threads();
+		targetType* start = buffer + tasksize*omp_get_thread_num();
+
+		unsigned int * state = rbuf+omp_get_thread_num()*stride;
+		for (int i = 0; i < tasksize; ++i) {
+			start[i] = rand_r(state);
+		}
+	}
 }
 
 void
