@@ -87,17 +87,20 @@ features_t get_features(const targetType *buf, size_t len, targetType pivot) {
 		ans.sum += cp->sum;
 		ans.gepivot += cp->gepivot;
 
+
+		ans.partitioned = ans.partitioned && cp->partitioned;
+
+		// after the first time, all should be ge.
+		if (pivot_crossed) {
+			ans.partitioned = ans.partitioned && !(cp->gepivot < tasksize);
+		}
+
 		if (cp->gepivot > 0) {
-			if (!pivot_crossed) {
 				// first time pivot crossed.
 				pivot_crossed = 1;
-				ans.partitioned = ans.partitioned && cp->partitioned;
-			} else {
-				// after the first time, all should be ge.
-				ans.partitioned = ans.partitioned && !(cp->gepivot < tasksize);
-			}
-
 		}
+
+
 	}
 
 	return ans;
