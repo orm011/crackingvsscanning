@@ -8,6 +8,8 @@
 #include <getopt.h>
 #include <stdint.h>
 #include <assert.h>
+#include <omp.h>
+
 
 #if PCMON == 1
 #include <cpucounters.h>
@@ -38,11 +40,10 @@ typedef struct features {
 	int partitioned;
 } features_t;
 
-features_t get_features(targetType *buf, size_t len, targetType pivot) {
-	features_t ans  = { 0, 0, 1 };
+features_t get_features_st(const targetType *buf, size_t len, targetType pivot) {
+	features_t ans = {0, 0, 1};
 
 	int pivot_crossed = 0;
-	assert(ans.partitioned);
 
 	for (size_t i = 0; i < len ; i++) {
 		pivot_crossed = pivot_crossed || buf[i] >= pivot;
@@ -54,22 +55,102 @@ features_t get_features(targetType *buf, size_t len, targetType pivot) {
 	return ans;
 }
 
+
+features_t get_features(const targetType *buf, size_t len, targetType pivot) {
+
+	char *results;
+	int num_threads;
+
+	#pragma omp parallel
+	{
+		num_threads = omp_get_num_threads();
+	}
+
+	int ret = posix_memalign((void**)&results, 64, num_threads*64);
+	assert(ret == 0);
+	assert (len % num_threads == 0);
+	size_t tasksize = len/num_threads;
+	//printf("nu -- %d\n", num_threads);
+
+#pragma omp parallel
+	{
+		int num = omp_get_thread_num();
+		//printf("%d\n", omp_get_thread_num());
+		features_t res =  get_features_st(buf+num*tasksize, tasksize, pivot);
+		*((features_t*)(results + num*64)) = res;
+	}
+
+	features_t ans = {0, 0, 1};
+	int pivot_crossed = 0;
+	for (char * p = results; p < results + num_threads*64; p+=64) {
+		features_t *cp = (features_t*)p;
+		ans.sum += cp->sum;
+		ans.gepivot += cp->gepivot;
+
+		if (cp->gepivot > 0) {
+			if (!pivot_crossed) {
+				// first time pivot crossed.
+				pivot_crossed = 1;
+				ans.partitioned = ans.partitioned && cp->partitioned;
+			} else {
+				// after the first time, all should be ge.
+				ans.partitioned = ans.partitioned && !(cp->gepivot < tasksize);
+			}
+
+		}
+	}
+
+	return ans;
+}
+
 void sanity_check(){
 	unsigned int b[] = {0,3,1,4,5};
 	size_t elts = sizeof(b)/sizeof(unsigned int);
 
-	features_t t1 = get_features(b, elts, 0);
+	features_t t1 = get_features_st(b, elts, 0);
 	assert(t1.partitioned);
 	assert(t1.gepivot == 5);
 	assert(t1.sum == 13);
 
-	features_t t2 = get_features(b, elts, 2);
+	features_t t2 = get_features_st(b, elts, 2);
 	assert(!t2.partitioned);
 	assert(t2.gepivot == 3);
 
-	features_t t4 = get_features(b, elts, 4);
+	features_t t4 = get_features_st(b, elts, 4);
 	assert(t4.partitioned);
 	assert(t4.gepivot == 2);
+
+
+	unsigned int b2[64];
+	for (int i = 0; i < 64; ++i) {
+		b2[i] = i;
+	}
+
+	features_t u1 = get_features(b2, 64, 32);
+	assert(u1.partitioned);
+	assert(u1.gepivot == 32);
+	assert(u1.sum == 63*64/2);
+
+	b2[31] = 32;
+	b2[32] = 31;
+	features_t u2 = get_features(b2, 64, 32);
+	assert(!u2.partitioned); // 31 is after.
+	assert(u2.gepivot == 32);
+	assert(u1.sum == 63*64/2);
+
+
+	features_t u3 = get_features(b2, 64, 33);
+	assert(u3.partitioned); // 31 is after.
+	assert(u3.gepivot == 31);
+	assert(u3.sum == 63*64/2);
+
+
+	features_t u4 = get_features(b2, 64, 30);
+	assert(u4.partitioned); // 31 is after.
+	assert(u4.gepivot == 34);
+	assert(u4.sum == 63*64/2);
+
+
 }
 
 int main(int argc, char* argv[]) {
