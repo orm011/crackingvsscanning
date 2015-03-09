@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 
-#define int64_t uint32_t // sorry, but easier to make it work this way.
+#define int64_t targetType // sorry, but easier to make it work this way.
 
 // Helper routine.  See the comment in ps_hoare_p() for the meaning
 // of filter_indices[].
