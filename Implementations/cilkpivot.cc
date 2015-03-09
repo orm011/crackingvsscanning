@@ -180,7 +180,7 @@ static size_t ps_hoare_p(int64_t array[], size_t n, int64_t pivot)
   long diff = timediff(bp, ap);
 
 #if TIMING == 1
-  printf("prefix time: %ld\n", diff);
+  printf("prefix time: %ld ms\n", diff/1000);
 #endif
 
   size_t l = ps_hoare_p_search(array, filter_indices, pivot, n, 0, n);
@@ -190,9 +190,7 @@ static size_t ps_hoare_p(int64_t array[], size_t n, int64_t pivot)
 }
 
 
-
 targetType* performCrack(targetType* buffer, payloadType* payloadBuffer, size_t bufferSize, targetType pivot, const targetType pivot_P) {
 	ps_hoare_p(buffer, bufferSize, pivot);
 	return NULL;
 }
-
