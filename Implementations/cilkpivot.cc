@@ -11,7 +11,7 @@ static long timediff(struct timeval before, struct timeval after){
 
 // Helper routine.  See the comment in ps_hoare_p() for the meaning
 // of filter_indices[].
-static inline size_t less_suffix(size_t i, const size_t filter_indices[], size_t n)
+static inline size_t less_suffix(size_t i, const unsigned int filter_indices[], size_t n)
 {
   return (n - i) - (filter_indices[n-1] - filter_indices[i]);
 }
@@ -19,7 +19,7 @@ static inline size_t less_suffix(size_t i, const size_t filter_indices[], size_t
 // This routine performs partition swaps of elements in array[ll:lh] that are
 // larger than pivot and elements in array[hl:hh] that are smaller than pivot.
 // These swaps are performed using parallel divide-and-conquer.
-static void ps_hoare_p_dac(int64_t array[], const size_t filter_indices[],
+static void ps_hoare_p_dac(int64_t array[], const unsigned int filter_indices[],
                            int64_t pivot, size_t n,
                            size_t ll, size_t lh, size_t hl, size_t hh)
 {
@@ -104,7 +104,7 @@ static void ps_hoare_p_dac(int64_t array[], const size_t filter_indices[],
 // As it performs this search, this routine spawns off calls to perform
 // partition swaps on sections of array[] that are guaranteed to not
 // contain pivot.
-static size_t ps_hoare_p_search(int64_t array[], const size_t filter_indices[],
+static size_t ps_hoare_p_search(int64_t array[], const unsigned int filter_indices[],
                                 int64_t pivot, size_t n,
                                 size_t l, size_t h)
 {
@@ -136,7 +136,7 @@ static void prefix(
 		const targetType* buffer,
 		const size_t size,
 		const targetType pivot,
-		size_t *filter_indices)
+		unsigned int *filter_indices)
 {
 	if (size < COARSENING) {
 		size_t runningCount = 0;
@@ -162,7 +162,7 @@ static void prefix(
 // This is the top-level function that partitions array[] about pivot.
 static size_t ps_hoare_p(int64_t array[], size_t n, int64_t pivot)
 {
-  size_t *filter_indices = new size_t[n];
+  unsigned int *filter_indices = new unsigned int[n];
   // filter_indices[i] equals the number of elements greater than the
   // pivot in array[0:i], and thus i - filter_indices[i] equals the
   // number of elements less than or equal to pivot in array[0:i].  We
