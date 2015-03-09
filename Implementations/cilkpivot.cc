@@ -127,6 +127,33 @@ static size_t ps_hoare_p_search(int64_t array[], const size_t filter_indices[],
   }
 }
 
+static size_t prefix(
+		const targetType* buffer,
+		const size_t size,
+		const targetType pivot,
+		size_t *filter_indices)
+{
+	if (size < 4096) {
+		size_t runningCount = 0;
+		for (size_t i = 0; i < size; ++i) {
+			runningCount += buffer[i] > pivot;
+			filter_indices[i] = runningCount;
+		}
+	} else {
+		const size_t half = size/2;
+		_Cilk_spawn prefix(buffer, half, pivot, filter_indices);
+		prefix(buffer + half, half, pivot, filter_indices + half);
+
+		_Cilk_sync;
+
+		const size_t acc = buffer[half - 1];
+
+		_Cilk_for (int i = 0; i < half; ++i) {
+			filter_indices[half + i] += acc;
+		}
+	}
+}
+
 // This is the top-level function that partitions array[] about pivot.
 static size_t ps_hoare_p(int64_t array[], size_t n, int64_t pivot)
 {
@@ -138,12 +165,15 @@ static size_t ps_hoare_p(int64_t array[], size_t n, int64_t pivot)
   // (filter_indices[n] - filter_indices[mid]).
 
   // ... compute filter_indices using a parallel prefix-sum computation ...
+  prefix(array, n, pivot, filter_indices);
 
   size_t l = ps_hoare_p_search(array, filter_indices, pivot, n, 0, n);
 
   delete[] filter_indices;
   return l;
 }
+
+
 
 targetType* performCrack(targetType* buffer, payloadType* payloadBuffer, size_t bufferSize, targetType pivot, const targetType pivot_P) {
 	ps_hoare_p(buffer, bufferSize, pivot);
