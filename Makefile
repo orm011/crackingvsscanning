@@ -58,7 +58,7 @@ IFLAGS+=-I $(PCM)
 endif
 
 
-all: scanning cracking copying
+all: scanning cracking copying cilkpivot
 
 outputdir:
 	mkdir -v bin 2>/dev/null || true
@@ -74,6 +74,9 @@ cracking: outputdir
 
 scanning: outputdir
 	$(CC) $(CCFLAGS) $(IFLAGS) -o ./bin/scanning Implementations/scanning.c $(COMMON) $(LDFLAGS)
+
+cilkpivot: outputdir
+	$(CC) $(CCFLAGS) $(IFLAGS) -o ./bin/cilkpivot Implementations/cilkpivot.cc $(COMMON) $(LDFLAGS)
 
 scanning.asm: asmdir
 	$(CC) -S $(CCFLAGS) $(IFLAGS) -o ./asm/scanning.asm Implementations/scanning.c 
