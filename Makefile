@@ -4,7 +4,21 @@ NPROCS:=$(shell cat /proc/cpuinfo | grep processor | wc -l)
 THREADS=$(NPROCS)
 
 CC=g++
-CCFLAGS=-g -std=c++0x -fpermissive -ftree-vectorize -funroll-loops -fsched-spec-load -falign-loops -fno-omit-frame-pointer -march=native -mtune=native
+CCFLAGS=-g -std=c++0x -fpermissive -ftree-vectorize -funroll-loops -fno-omit-frame-pointer -march=native -mtune=native
+
+LDFLAGS=-lm -lpthread
+
+ifeq ($(CC),clang++)
+CCFLAGS+=-fcilkplus
+LDFLAGS+=-ldl -l:libcilkrts.a
+endif
+
+ifeq ($(PCMON), 1)
+LDFLAGS+=-L $(PCM)/intelpcm.so/ -lintelpcm -Wl,-rpath $(PCM)/intelpcm.so/
+endif
+
+ifeq ($(CC),clang++)
+endif
 
 ifndef NOMP
 CCFLAGS+=-fopenmp
@@ -16,6 +30,7 @@ else
 CCFLAGS+=-O3
 endif
 
+#-fsched-spec-load -falign-loops <- not available on my clang branch., but also not showing consisent perf.
 #-faggressive-loop-optimizations <- not available in istc*
 #-floop-parallelize-all <- needs config'd gcc
 
@@ -42,10 +57,6 @@ ifeq ($(PCMON), 1)
 IFLAGS+=-I $(PCM)
 endif
 
-LDFLAGS=-lm -lpthread
-ifeq ($(PCMON), 1)
-LDFLAGS+=-L $(PCM)/intelpcm.so/ -lintelpcm -Wl,-rpath $(PCM)/intelpcm.so/
-endif
 
 all: scanning cracking copying
 

@@ -17,6 +17,11 @@ static int omp_get_max_threads(){
 #endif
 
 
+void randBase(targetType* buffer, size_t size, unsigned int * statebuf) {
+	for (size_t i = 0; i < size; ++i){
+		buffer[i] = rand_r(statebuf);
+	}
+}
 
 void
 randomDistribution(targetType *buffer, unsigned int size, targetType domain, int seed)
@@ -24,19 +29,25 @@ randomDistribution(targetType *buffer, unsigned int size, targetType domain, int
 	unsigned int p = 0, q = size;
 	unsigned int* rbuf = NULL;
 	const size_t linesize = 64;
-	int r= posix_memalign((void**)&rbuf, linesize, omp_get_max_threads()*linesize);
+	int r= posix_memalign((void**)&rbuf, linesize, NTHREADS*linesize);
 	assert(r == 0);
 	const size_t stride = linesize/sizeof(unsigned int);
 
-	for (int i = 0; i < stride*omp_get_max_threads(); i+=stride) {
+	for (int i = 0; i < stride*NTHREADS; i+=stride) {
 		rbuf[i] = ((unsigned)seed) + i;
 	}
 
-	assert(size > 0);
+	assert(size % NTHREADS == 0);
+	size_t tasksize = size/NTHREADS;
 
-	#pragma omp parallel for
-	for (int i=0; i < q; i++)
-		buffer[i] = rand_r(rbuf+omp_get_thread_num()*stride);
+	for (int x = 0; x < NTHREADS; ++x) {
+		_Cilk_spawn randBase(buffer + x*tasksize, tasksize, rbuf + x*stride);
+	}
+
+	_Cilk_sync;
+
+
+	assert(size > 0);
 }
 
 void

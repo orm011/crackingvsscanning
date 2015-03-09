@@ -38,7 +38,7 @@ typedef struct features {
 	int partitioned;
 } features_t;
 
-features_t get_features(targetType *buf, size_t len, targetType pivot) {
+features_t get_features_base(targetType *buf, size_t len, targetType pivot) {
 	features_t ans  = { 0, 0, 1 };
 
 	int pivot_crossed = 0;
@@ -53,6 +53,33 @@ features_t get_features(targetType *buf, size_t len, targetType pivot) {
 
 	return ans;
 }
+
+features_t get_features(targetType *buf, size_t len, targetType pivot) {
+
+	features_t ans = {0, 0, 1};
+	if (len <= 4096) {
+		ans = get_features_base(buf, len, pivot);
+		return ans;
+	} else {
+		size_t half = len/2;
+		features_t ansl = _Cilk_spawn get_features(buf, half, pivot);
+		features_t ansr = get_features(buf + half, half, pivot);
+
+		_Cilk_sync;
+
+		ans.gepivot = ansl.gepivot + ansr.gepivot;
+		ans.sum = ansl.sum + ansr.sum;
+
+		if (ansl.gepivot < half) {
+			ans.partitioned = ansl.partitioned && (ansr.gepivot == half);
+		} else {
+			ans.partitioned = (ansr.gepivot == half);
+		}
+		return ans;
+	}
+}
+
+
 
 void sanity_check(){
 	unsigned int b[] = {0,3,1,4,5};
