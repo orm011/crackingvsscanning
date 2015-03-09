@@ -180,7 +180,7 @@ static size_t ps_hoare_p(int64_t array[], size_t n, int64_t pivot)
   long diff = timediff(bp, ap);
 
 #if TIMING == 1
-  fprintf("prefix time: %d\n", diff);
+  printf("prefix time: %d\n", diff);
 #endif
 
   size_t l = ps_hoare_p_search(array, filter_indices, pivot, n, 0, n);
