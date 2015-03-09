@@ -46,6 +46,7 @@ randomDistribution(targetType *buffer, unsigned int size, targetType domain, int
 
 	_Cilk_sync;
 
+	free(rbuf);
 
 	assert(size > 0);
 }
