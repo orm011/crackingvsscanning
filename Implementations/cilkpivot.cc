@@ -127,7 +127,7 @@ static size_t ps_hoare_p_search(int64_t array[], const size_t filter_indices[],
   }
 }
 
-static size_t prefix(
+static void prefix(
 		const targetType* buffer,
 		const size_t size,
 		const targetType pivot,
