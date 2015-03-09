@@ -138,7 +138,7 @@ static void prefix(
 		const targetType pivot,
 		size_t *filter_indices)
 {
-	if (size < 4096) {
+	if (size < COARSENING) {
 		size_t runningCount = 0;
 		for (size_t i = 0; i < size; ++i) {
 			runningCount += buffer[i] > pivot;
