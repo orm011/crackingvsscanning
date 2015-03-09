@@ -175,12 +175,12 @@ static size_t ps_hoare_p(int64_t array[], size_t n, int64_t pivot)
 
   gettimeofday(&bp, NULL);
   prefix(array, n, pivot, filter_indices);
-  gettimeofday(&bp, NULL);
+  gettimeofday(&ap, NULL);
 
   long diff = timediff(bp, ap);
 
 #if TIMING == 1
-  printf("prefix time: %d\n", diff);
+  printf("prefix time: %l\n", diff);
 #endif
 
   size_t l = ps_hoare_p_search(array, filter_indices, pivot, n, 0, n);
