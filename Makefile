@@ -2,13 +2,15 @@
 
 NPROCS:=$(shell cat /proc/cpuinfo | grep processor | wc -l)
 THREADS=$(NPROCS)
-
 CC=g++
 CCFLAGS=-g -std=c++0x -fpermissive -ftree-vectorize -funroll-loops -fno-omit-frame-pointer -march=native -mtune=native
 
 LDFLAGS=-lm -lpthread
+CILK=1
 
-ifeq ($(CC),clang++)
+NOMP=1
+
+ifeq ($(CILK),1)
 CCFLAGS+=-fcilkplus
 LDFLAGS+=-ldl -l:libcilkrts.a
 endif
@@ -18,7 +20,7 @@ LDFLAGS+=-L $(PCM)/intelpcm.so/ -lintelpcm -Wl,-rpath $(PCM)/intelpcm.so/
 endif
 
 COMMONDEFS=-DAFFINITY=$(AFFINITY) -DCOARSENING=$(COARSENING) -DNO_PAPI -DPCMON=$(PCMON) -DTIMING=$(TIMING) -DSEED=$(SEED) -DSKEW=$(SKEW) -DVECTORSIZE=$(VECTORSIZE) -DNTHREADS=$(THREADS) -DDISTRIBUTION=$(DISTRIBUTION) -DTASKS_PER_THREAD=$(TASKS_PER_THREAD)
-ifeq ($(CC),clang++)
+ifeq ($(CILK),1)
 else
 COMMONDEFS+=-D_Cilk_for=for -D'_Cilk_spawn= ' -D'_Cilk_sync= '
 endif
