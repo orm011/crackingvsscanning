@@ -1,5 +1,10 @@
 #include "../Framework/cracking_MT.h"
 #include <stdlib.h>
+#include <sys/time.h>
+
+static long timediff(struct timeval before, struct timeval after){
+	return (after.tv_usec - before.tv_usec) + (after.tv_sec-before.tv_sec)*1000000;
+}
 
 
 #define int64_t targetType // sorry, but easier to make it work this way.
@@ -165,7 +170,18 @@ static size_t ps_hoare_p(int64_t array[], size_t n, int64_t pivot)
   // (filter_indices[n] - filter_indices[mid]).
 
   // ... compute filter_indices using a parallel prefix-sum computation ...
+  struct timeval bp;
+  struct timeval ap;
+
+  gettimeofday(&bp, NULL);
   prefix(array, n, pivot, filter_indices);
+  gettimeofday(&bp, NULL);
+
+  long diff = timediff(bp, ap);
+
+#if TIMING == 1
+  fprintf("prefix time: %d\n", diff);
+#endif
 
   size_t l = ps_hoare_p_search(array, filter_indices, pivot, n, 0, n);
 
